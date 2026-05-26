@@ -6,7 +6,32 @@ import {
   ChevronDown, ChevronRight, Plus, Settings,
   Clock, Bookmark, Star, Lightbulb, Brain,
 } from "lucide-react"
-import { workspaces, spaces, collections, tags } from "@/lib/mock-data"
+import { useKMSStore } from "@/lib/store"
+
+const workspaces = [
+  { name: "Home", icon: "home", view: "notes" as const },
+  { name: "笔记", icon: "file-text", view: "notes" as const },
+  { name: "日记", icon: "calendar", view: "diary" as const },
+  { name: "图谱", icon: "network", view: "graph" as const },
+  { name: "任务", icon: "check-square", view: "tasks" as const },
+  { name: "AI 助手", icon: "bot", view: "ai" as const },
+]
+
+const spaces = [
+  { name: "工程", key: "engineering", children: ["Backend", "DevOps", "数据库", "AI & ML"] },
+  { name: "研究", key: "research", children: [] },
+  { name: "生活", key: "life", children: [] },
+  { name: "创业", key: "startup", children: [] },
+]
+
+const collections = [
+  { name: "最近编辑", icon: "clock", count: 0 },
+  { name: "稍后阅读", icon: "bookmark", count: 0 },
+  { name: "高频引用", icon: "star", count: 0 },
+  { name: "灵感收集", icon: "lightbulb", count: 0 },
+]
+
+const tags = ["Go", "Kubernetes", "分布式系统", "微服务", "设计模式", "AI"]
 
 const iconMap: Record<string, React.ElementType> = {
   home: Home, "file-text": FileText, calendar: Calendar,
@@ -15,16 +40,26 @@ const iconMap: Record<string, React.ElementType> = {
 }
 
 export default function LeftNav() {
-  const [expandedSpaces, setExpandedSpaces] = useState<Record<string, boolean>>(
-    Object.fromEntries(spaces.map((s) => [s.key, s.isExpanded]))
-  )
+  const { activeView, setActiveView, setActiveSpace, loadNotes } = useKMSStore()
+  const [expandedSpaces, setExpandedSpaces] = useState<Record<string, boolean>>({
+    engineering: true,
+  })
 
-  const toggleSpace = (key: string) =>
+  const toggleSpace = (key: string) => {
     setExpandedSpaces((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const handleWorkspaceClick = (view: typeof activeView) => {
+    setActiveView(view)
+  }
+
+  const handleSpaceClick = (space: string) => {
+    setActiveSpace(space)
+    loadNotes(`notes/${space}`)
+  }
 
   return (
     <div className="w-60 min-w-60 bg-bg-sidebar border-r border-border-default flex flex-col h-screen overflow-hidden">
-      {/* Header */}
       <div className="flex items-center gap-2 px-4 py-4 border-b border-border-divider">
         <Brain className="w-6 h-6 text-accent-purple" />
         <span className="text-text-primary font-semibold text-sm">Second Brain</span>
@@ -38,8 +73,9 @@ export default function LeftNav() {
         <Section title="工作区">
           {workspaces.map((w) => {
             const Icon = iconMap[w.icon] || FileText
+            const isActive = activeView === w.view
             return (
-              <NavItem key={w.name} active={w.active}>
+              <NavItem key={w.name} active={isActive} onClick={() => handleWorkspaceClick(w.view)}>
                 <Icon className="w-4 h-4" />
                 <span>{w.name}</span>
               </NavItem>
@@ -68,6 +104,7 @@ export default function LeftNav() {
                     <div
                       key={child}
                       className="px-3 py-1 text-xs text-text-muted hover:text-text-secondary hover:bg-bg-hover cursor-pointer rounded transition-colors"
+                      onClick={() => handleSpaceClick(s.key)}
                     >
                       {child}
                     </div>
@@ -110,15 +147,7 @@ export default function LeftNav() {
   )
 }
 
-function Section({
-  title,
-  children,
-  action,
-}: {
-  title: string
-  children: React.ReactNode
-  action?: React.ReactNode
-}) {
+function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="mb-2">
       <div className="flex items-center justify-between px-4 py-1.5">
@@ -130,18 +159,12 @@ function Section({
   )
 }
 
-function NavItem({
-  children,
-  active,
-}: {
-  children: React.ReactNode
-  active?: boolean
-}) {
+function NavItem({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
   const cls = active
     ? "bg-bg-selected text-text-primary border-l-2 border-accent-blue"
     : "text-text-tertiary hover:text-text-primary hover:bg-bg-hover"
   return (
-    <div className={`flex items-center gap-2.5 px-4 py-1.5 text-sm cursor-pointer transition-colors rounded mx-1 ${cls}`}>
+    <div className={`flex items-center gap-2.5 px-4 py-1.5 text-sm cursor-pointer transition-colors rounded mx-1 ${cls}`} onClick={onClick}>
       {children}
     </div>
   )

@@ -1,21 +1,36 @@
 "use client"
 
-import { useState } from "react"
-import {
-  ChevronDown, ChevronRight, Search, Plus,
-  Folder, FolderOpen,
-} from "lucide-react"
-import { fileTree, TreeNode } from "@/lib/mock-data"
+import { useState, useEffect } from "react"
+import { ChevronDown, ChevronRight, Search, Plus, Folder, FolderOpen, FileText } from "lucide-react"
+import { useKMSStore } from "@/lib/store"
 
 export default function FileBrowser() {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    kubernetes: true,
-    "kubernetes/scheduling": true,
-  })
-  const [selected, setSelected] = useState("kubernetes/scheduling")
+  const { fileTree, loadNotes, loadNote, notes, search, searchQuery, clearSearch } = useKMSStore()
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [selected, setSelected] = useState("")
+  const [inputValue, setInputValue] = useState("")
 
-  const toggle = (path: string) =>
+  useEffect(() => {
+    loadNotes()
+  }, [loadNotes])
+
+  const toggle = (path: string) => {
     setExpanded((prev) => ({ ...prev, [path]: !prev[path] }))
+  }
+
+  const handleSelect = (path: string) => {
+    setSelected(path)
+    loadNote(path)
+  }
+
+  const handleSearch = (value: string) => {
+    setInputValue(value)
+    if (value.trim()) {
+      search(value)
+    } else {
+      clearSearch()
+    }
+  }
 
   return (
     <div className="w-65 min-w-65 bg-bg-sidebar border-r border-border-default flex flex-col h-screen">
@@ -26,24 +41,48 @@ export default function FileBrowser() {
           <input
             type="text"
             placeholder="搜索文件..."
+            value={inputValue}
+            onChange={(e) => handleSearch(e.target.value)}
             className="bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none flex-1"
           />
         </div>
       </div>
 
-      {/* Tree */}
+      {/* Tree or Search Results */}
       <div className="flex-1 overflow-y-auto px-1">
-        {fileTree.map((node) => (
-          <TreeNodeComponent
-            key={node.path}
-            node={node}
-            depth={0}
-            expanded={expanded}
-            selected={selected}
-            onToggle={toggle}
-            onSelect={setSelected}
-          />
-        ))}
+        {searchQuery ? (
+          <div>
+            <div className="px-3 py-2 text-xs text-text-muted">
+              搜索 &quot;{searchQuery}&quot; · {notes.length} 结果
+            </div>
+            {notes.map((note) => (
+              <div
+                key={note.id}
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded transition-colors ${
+                  selected === note.path
+                    ? "bg-bg-selected text-text-primary"
+                    : "text-text-tertiary hover:text-text-primary hover:bg-bg-hover"
+                }`}
+                onClick={() => handleSelect(note.path)}
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span className="truncate text-[13px]">{note.title}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          fileTree.map((node) => (
+            <TreeNodeComponent
+              key={node.path}
+              node={node}
+              depth={0}
+              expanded={expanded}
+              selected={selected}
+              onToggle={toggle}
+              onSelect={handleSelect}
+            />
+          ))
+        )}
       </div>
 
       {/* New Note Button */}
@@ -57,25 +96,23 @@ export default function FileBrowser() {
   )
 }
 
+interface TreeNode {
+  name: string;
+  path: string;
+  type: "file" | "folder";
+  children?: TreeNode[];
+}
+
 function TreeNodeComponent({
-  node,
-  depth,
-  expanded,
-  selected,
-  onToggle,
-  onSelect,
+  node, depth, expanded, selected, onToggle, onSelect,
 }: {
-  node: TreeNode
-  depth: number
-  expanded: Record<string, boolean>
-  selected: string
-  onToggle: (path: string) => void
-  onSelect: (path: string) => void
+  node: TreeNode; depth: number; expanded: Record<string, boolean>; selected: string;
+  onToggle: (path: string) => void; onSelect: (path: string) => void;
 }) {
-  const isFolder = node.type === "folder" || (node.children && node.children.length > 0)
+  const isFolder = node.type === "folder"
   const isExpanded = expanded[node.path]
   const isSelected = selected === node.path
-  const hasSubChildren = node.children && node.children.length > 0
+  const hasChildren = node.children && node.children.length > 0
 
   const selectedCls = isSelected
     ? "bg-bg-selected text-text-primary border-l-2 border-accent-blue"
@@ -92,35 +129,21 @@ function TreeNodeComponent({
         }}
       >
         {isFolder ? (
-          isExpanded ? (
-            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          )
+          isExpanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />
         ) : (
           <span className="w-3.5 shrink-0" />
         )}
         {isFolder ? (
-          isExpanded ? (
-            <FolderOpen className="w-4 h-4 text-accent-yellow shrink-0" />
-          ) : (
-            <Folder className="w-4 h-4 text-accent-yellow shrink-0" />
-          )
-        ) : null}
+          isExpanded ? <FolderOpen className="w-4 h-4 text-accent-yellow shrink-0" /> : <Folder className="w-4 h-4 text-accent-yellow shrink-0" />
+        ) : (
+          <FileText className="w-4 h-4 text-text-muted shrink-0" />
+        )}
         <span className="truncate text-[13px]">{node.name}</span>
       </div>
-      {isExpanded && hasSubChildren && (
+      {isExpanded && hasChildren && (
         <div>
           {node.children!.map((child) => (
-            <TreeNodeComponent
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              expanded={expanded}
-              selected={selected}
-              onToggle={onToggle}
-              onSelect={onSelect}
-            />
+            <TreeNodeComponent key={child.path} node={child} depth={depth + 1} expanded={expanded} selected={selected} onToggle={onToggle} onSelect={onSelect} />
           ))}
         </div>
       )}
