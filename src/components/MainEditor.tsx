@@ -5,7 +5,7 @@ import { Lightbulb, X, MoreHorizontal, Save } from "lucide-react"
 import { useKMSStore } from "@/lib/store"
 
 export default function MainEditor() {
-  const { currentNote, updateNote, searchResults, searchQuery } = useKMSStore()
+  const { currentNote, updateNote, loadNote, searchResults, searchQuery, clearSearch } = useKMSStore()
   const [editContent, setEditContent] = useState("")
   const [isEditing, setIsEditing] = useState(false)
 
@@ -18,7 +18,7 @@ export default function MainEditor() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-[860px] mx-auto space-y-3">
             {searchResults.map((r) => (
-              <div key={r.id} className="bg-bg-card border border-border-default rounded-md p-4 hover:border-accent-blue cursor-pointer transition-colors">
+              <div key={r.id} className="bg-bg-card border border-border-default rounded-md p-4 hover:border-accent-blue cursor-pointer transition-colors" onClick={() => loadNote(r.path)}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-text-primary font-medium">{r.title}</span>
                   <span className="text-[11px] text-text-muted">{r.path}</span>
