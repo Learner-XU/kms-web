@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// 使用相对路径，通过 Next.js rewrite 代理到后端
+const API_BASE = "";
 
 export interface Note {
   id: string;
@@ -104,7 +105,7 @@ export const notesAPI = {
 
   history: (path: string) =>
     fetchAPI<{ commits: { sha: string; message: string; created: string; author: { name: string } }[] }>(
-      `/api/notes/${path}/history`
+      `/api/history/${path}`
     ),
 };
 
@@ -119,7 +120,7 @@ export const searchAPI = {
   },
 
   backlinks: (noteId: string) =>
-    fetchAPI<{ backlinks: SearchResult[] }>(`/api/notes/${noteId}/backlinks`),
+    fetchAPI<{ backlinks: SearchResult[] }>(`/api/backlinks/${noteId}`),
 };
 
 // Graph
