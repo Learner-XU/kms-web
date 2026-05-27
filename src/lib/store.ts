@@ -39,6 +39,9 @@ interface KMSStore {
   // Dialog
   showNewNoteDialog: boolean;
 
+  // Right sidebar
+  showRightSidebar: boolean;
+
   // Actions
   loadNotes: (dir?: string) => Promise<void>;
   loadNote: (path: string) => Promise<void>;
@@ -53,7 +56,8 @@ interface KMSStore {
   clearSearch: () => void;
   clearError: () => void;
   setShowNewNoteDialog: (show: boolean) => void;
-  toggleRightSidebar?: () => void;
+  setShowRightSidebar: (show: boolean) => void;
+  toggleRightSidebar: () => void;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, nickname?: string) => Promise<void>;
   logout: () => void;
@@ -75,6 +79,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   user: null,
   authLoading: true,
   showNewNoteDialog: false,
+  showRightSidebar: false,
 
   loadNotes: async (dir) => {
     set({ notesLoading: true });
@@ -108,15 +113,11 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   },
 
   updateNote: async (path, content) => {
-    try {
-      const note = await notesAPI.update(path, { content });
-      set((s) => ({
-        notes: s.notes.map((n) => (n.path === path ? note : n)),
-        currentNote: note,
-      }));
-    } catch (e) {
-      set({ error: 'Failed to update note' });
-    }
+    const note = await notesAPI.update(path, { content });
+    set((s) => ({
+      notes: s.notes.map((n) => (n.path === path ? note : n)),
+      currentNote: note,
+    }));
   },
 
   deleteNote: async (path) => {
@@ -160,6 +161,8 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   clearSearch: () => set({ searchResults: [], searchQuery: "" }),
   clearError: () => set({ error: null }),
   setShowNewNoteDialog: (show) => set({ showNewNoteDialog: show }),
+  setShowRightSidebar: (show) => set({ showRightSidebar: show }),
+  toggleRightSidebar: () => set((s) => ({ showRightSidebar: !s.showRightSidebar })),
   login: async (username, password) => {
     const res = await authAPI.login(username, password);
     setToken(res.access_token);

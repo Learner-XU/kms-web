@@ -7,28 +7,22 @@ import { searchAPI, SearchResult } from "@/lib/api"
 import { motion, AnimatePresence } from "motion/react"
 
 export default function RightSidebar() {
-  const { currentNote } = useKMSStore()
+  const { currentNote, showRightSidebar, setShowRightSidebar } = useKMSStore()
   const [backlinks, setBacklinks] = useState<SearchResult[]>([])
-  const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (open && currentNote?.id) {
+    if (showRightSidebar && currentNote?.id) {
       searchAPI.backlinks(currentNote.id).then(({ backlinks }) => setBacklinks(backlinks || [])).catch(() => {})
     } else {
       setBacklinks([])
     }
-  }, [open, currentNote?.id])
-
-  // 暴露 toggle 方法给 store，让 MainEditor 可以调用
-  useEffect(() => {
-    useKMSStore.setState({ toggleRightSidebar: () => setOpen((v) => !v) })
-  }, [])
+  }, [showRightSidebar, currentNote?.id])
 
   if (!currentNote) return null
 
   return (
     <AnimatePresence>
-      {open && (
+      {showRightSidebar && (
         <>
           {/* 遮罩 */}
           <motion.div
@@ -37,7 +31,7 @@ export default function RightSidebar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-40 bg-black/20"
-            onClick={() => setOpen(false)}
+            onClick={() => setShowRightSidebar(false)}
           />
           {/* 面板 */}
           <motion.div
@@ -50,7 +44,7 @@ export default function RightSidebar() {
             {/* 关闭按钮 */}
             <div className="flex items-center justify-between px-4 h-11 border-b border-border-subtle shrink-0">
               <span className="text-[13px] font-medium text-text-secondary">笔记信息</span>
-              <button onClick={() => setOpen(false)} className="p-1 text-text-ghost hover:text-text-tertiary transition-colors">
+              <button onClick={() => setShowRightSidebar(false)} className="p-1 text-text-ghost hover:text-text-tertiary transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -100,7 +94,7 @@ export default function RightSidebar() {
                     <div
                       key={link.id}
                       className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-text-tertiary hover:text-accent-hover hover:bg-bg-hover rounded-md cursor-pointer transition-colors"
-                      onClick={() => { useKMSStore.getState().loadNote(link.path); setOpen(false) }}
+                      onClick={() => { useKMSStore.getState().loadNote(link.path); setShowRightSidebar(false) }}
                     >
                       <FileText className="w-3 h-3 shrink-0 text-text-ghost" />
                       <span className="truncate">{link.title}</span>

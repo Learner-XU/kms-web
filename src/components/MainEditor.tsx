@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 
 export default function MainEditor() {
-  const { currentNote, updateNote, loadNote, searchResults, searchQuery } = useKMSStore()
+  const { currentNote, updateNote, loadNote, searchResults, searchQuery, setShowRightSidebar } = useKMSStore()
   const [editContent, setEditContent] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Search results view
   if (searchQuery && searchResults.length > 0 && !currentNote) {
@@ -59,12 +60,17 @@ export default function MainEditor() {
     )
   }
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (currentNote && editContent !== currentNote.content) {
-      await updateNote(currentNote.path, editContent)
-      setIsEditing(false)
+      setSaveError(null)
+      try {
+        await updateNote(currentNote.path, editContent)
+        setIsEditing(false)
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : '保存失败')
+      }
     }
-  }
+  }, [currentNote, editContent, updateNote])
 
   const startEdit = () => {
     setEditContent(currentNote.content)
@@ -110,7 +116,7 @@ export default function MainEditor() {
             </button>
           )}
           <button
-            onClick={() => useKMSStore.getState().toggleRightSidebar?.()}
+            onClick={() => setShowRightSidebar(true)}
             className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
             title="笔记信息"
           >
@@ -125,6 +131,13 @@ export default function MainEditor() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-[860px] mx-auto px-8 py-8">
+          {/* Save error */}
+          {saveError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
+              <p className="text-[13px] text-red-400">保存失败: {saveError}</p>
+            </div>
+          )}
+
           {/* Breadcrumb */}
           <div className="flex items-center gap-1 text-[11px] text-text-ghost mb-6 font-mono">
             {currentNote.path.split("/").map((seg, i, arr) => (

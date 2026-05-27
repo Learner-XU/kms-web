@@ -95,6 +95,27 @@ export interface GraphData {
   edges: GraphEdge[];
 }
 
+async function tryRefreshToken(): Promise<boolean> {
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    setToken(data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -110,6 +131,15 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
   if (!res.ok) {
     if (res.status === 401) {
+      // Attempt token refresh before giving up
+      const refreshed = await tryRefreshToken();
+      if (refreshed) {
+        // Retry original request with new token
+        const newToken = getToken();
+        if (newToken) headers["Authorization"] = `Bearer ${newToken}`;
+        const retryRes = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+        if (retryRes.ok) return retryRes.json();
+      }
       clearToken();
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
@@ -124,7 +154,7 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 // Notes
 export const notesAPI = {
   list: (dir?: string) =>
-    fetchAPI<{ notes: Note[] }>(`/api/notes${dir ? `?dir=${dir}` : ""}`),
+    fetchAPI<{ notes: Note[] }>(`/api/notes${dir ? `?dir=${encodeURIComponent(dir)}` : ""}`),
 
   get: (path: string) =>
     fetchAPI<Note>(`/api/notes/${sanitizePath(path)}`),

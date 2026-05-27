@@ -19,6 +19,12 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   weight: number
 }
 
+interface ZoomableSVG extends SVGSVGElement {
+  __zoomIn?: () => void
+  __zoomOut?: () => void
+  __fit?: () => void
+}
+
 const statusColors: Record<string, string> = {
   seed: "#52525b",
   growing: "#eab308",
@@ -94,20 +100,22 @@ export default function GraphView() {
       .selectAll("g")
       .data(nodes)
       .join("g")
-      .call((d3.drag() as any)
-        .on("start", (event: any, d: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .call(d3.drag<any, SimNode>()
+        .on("start", (event: d3.D3DragEvent<any, SimNode, SimNode>, d) => {
           if (!event.active) simulation.alphaTarget(0.3).restart()
           d.fx = d.x; d.fy = d.y
         })
-        .on("drag", (event: any, d: any) => {
+        .on("drag", (event: d3.D3DragEvent<any, SimNode, SimNode>, d) => {
           d.fx = event.x; d.fy = event.y
         })
-        .on("end", (event: any, d: any) => {
+        .on("end", (event: d3.D3DragEvent<any, SimNode, SimNode>, d) => {
           if (!event.active) simulation.alphaTarget(0)
           d.fx = null; d.fy = null
         })
       )
-      .on("click", (_event, d) => { loadNote(d.id) })
+      // d.id is the note path from the backend graph API (confirmed: graph node id === note path)
+    .on("click", (_event, d) => { loadNote(d.id) })
 
     node.append("circle")
       .attr("r", (d) => Math.max(6, Math.min(18, 4 + d.link_count * 2.5)))
@@ -134,9 +142,9 @@ export default function GraphView() {
       node.attr("transform", (d) => `translate(${d.x},${d.y})`)
     })
 
-    ;(svg.node() as any).__zoomIn = () => svg.transition().call(zoom.scaleBy, 1.5)
-    ;(svg.node() as any).__zoomOut = () => svg.transition().call(zoom.scaleBy, 0.67)
-    ;(svg.node() as any).__fit = () => svg.transition().call(zoom.transform, d3.zoomIdentity)
+    ;(svg.node() as unknown as ZoomableSVG).__zoomIn = () => svg.transition().call(zoom.scaleBy, 1.5)
+    ;(svg.node() as unknown as ZoomableSVG).__zoomOut = () => svg.transition().call(zoom.scaleBy, 0.67)
+    ;(svg.node() as unknown as ZoomableSVG).__fit = () => svg.transition().call(zoom.transform, d3.zoomIdentity)
   }, [graphData, dimensions, loadNote])
 
   useEffect(() => { renderGraph() }, [renderGraph])
@@ -160,9 +168,9 @@ export default function GraphView() {
       {/* Zoom Controls */}
       <div className="absolute bottom-4 right-4 flex flex-col gap-0.5">
         {[
-          { handler: () => (svgRef.current as any)?.__zoomIn?.(), icon: Plus },
-          { handler: () => (svgRef.current as any)?.__zoomOut?.(), icon: Minus },
-          { handler: () => (svgRef.current as any)?.__fit?.(), icon: ArrowsOut },
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomIn?.(), icon: Plus },
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomOut?.(), icon: Minus },
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__fit?.(), icon: ArrowsOut },
         ].map(({ handler, icon: Icon }, i) => (
           <button
             key={i}
