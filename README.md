@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KMS Web — 知识管理系统前端
 
-## Getting Started
+Second Brain 风格的知识管理系统前端，基于 Next.js 16 + React 19 + Tailwind CSS 4。
 
-First, run the development server:
+![登录页](./docs/login.png) ![主页](./docs/home.png)
+
+## 功能
+
+- 🔐 JWT 认证（登录/注册/路由守卫）
+- 📂 文件树浏览（自动展开目录）
+- 📝 Markdown 笔记编辑器
+- 🔍 全文搜索（实时搜索 + 结果高亮）
+- 🕸️ 知识图谱可视化
+- 📅 日记视图
+- 🎨 深色主题（Second Brain 设计规范）
+
+## 快速开始
+
+### 前置条件
+
+- Node.js >= 18
+- 后端 [kms-server](https://github.com/Learner-XU/kms-server) 已运行在 `:8000`
+
+### 安装运行
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone git@github.com:Learner-XU/kms-web.git
+cd kms-web
+npm install
+npx next dev -p 3456 -H 0.0.0.0
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 **http://localhost:3456** → 注册账户 → 开始使用。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 生产构建
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npx next start -p 3456 -H 0.0.0.0
+```
 
-## Learn More
+## 技术栈
 
-To learn more about Next.js, take a look at the following resources:
+| 依赖 | 版本 |
+|------|------|
+| Next.js | 16.2.6 |
+| React | 19.2.4 |
+| TypeScript | 5.x |
+| Tailwind CSS | 4.x |
+| Zustand | 状态管理 |
+| Lucide React | 图标库 |
+| Playwright | E2E 测试 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 项目结构
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── page.tsx            # 主页（四栏布局）
+│   ├── login/page.tsx      # 登录页
+│   ├── register/page.tsx   # 注册页
+│   └── layout.tsx          # 全局布局 + AuthGuard
+├── components/
+│   ├── AuthGuard.tsx       # 路由守卫（未登录跳转 /login）
+│   ├── LeftNav.tsx         # 左侧导航（工作区/空间/收藏/标签/用户）
+│   ├── FileBrowser.tsx     # 文件树浏览器（自动展开 + 搜索）
+│   ├── MainEditor.tsx      # 笔记编辑器（查看/编辑/保存）
+│   ├── RightSidebar.tsx    # 右侧边栏（反向链接/元数据）
+│   ├── GraphView.tsx       # 知识图谱
+│   ├── DiaryView.tsx       # 日记视图
+│   └── NewNoteDialog.tsx   # 新建笔记对话框
+└── lib/
+    ├── api.ts              # API 客户端（自动带 Token，401 跳转）
+    └── store.ts            # Zustand 全局状态
+```
 
-## Deploy on Vercel
+## API 代理
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+前端通过 Next.js rewrites 将 `/api/*` 代理到后端，局域网设备访问无需 CORS 配置：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```ts
+// next.config.ts
+rewrites: [
+  { source: "/api/:path*", destination: "http://localhost:8000/api/:path*" }
+]
+```
+
+## 环境配置
+
+局域网访问需配置 `allowedDevOrigins`：
+
+```ts
+// next.config.ts
+allowedDevOrigins: ["192.168.x.x"]  // 你的局域网 IP
+```
+
+## License
+
+MIT
