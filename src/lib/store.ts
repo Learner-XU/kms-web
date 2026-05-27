@@ -53,6 +53,7 @@ interface KMSStore {
   clearSearch: () => void;
   clearError: () => void;
   setShowNewNoteDialog: (show: boolean) => void;
+  toggleRightSidebar?: () => void;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, nickname?: string) => Promise<void>;
   logout: () => void;

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText } from "@phosphor-icons/react"
+import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 
 export default function MainEditor() {
@@ -109,6 +109,13 @@ export default function MainEditor() {
               <PencilSimple className="w-3 h-3" /> 编辑
             </button>
           )}
+          <button
+            onClick={() => useKMSStore.getState().toggleRightSidebar?.()}
+            className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
+            title="笔记信息"
+          >
+            <Info className="w-4 h-4" />
+          </button>
           <button className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors">
             <DotsThree className="w-4 h-4" />
           </button>
