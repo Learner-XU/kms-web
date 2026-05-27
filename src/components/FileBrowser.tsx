@@ -15,6 +15,23 @@ export default function FileBrowser() {
     loadNotes()
   }, [loadNotes])
 
+  // Auto-expand all folders when fileTree changes
+  useEffect(() => {
+    if (fileTree.length > 0) {
+      const autoExpand: Record<string, boolean> = {}
+      const walk = (nodes: typeof fileTree) => {
+        for (const node of nodes) {
+          if (node.type === "folder") {
+            autoExpand[node.path] = true
+            if (node.children) walk(node.children)
+          }
+        }
+      }
+      walk(fileTree)
+      setExpanded(prev => ({ ...autoExpand, ...prev }))
+    }
+  }, [fileTree])
+
   const toggle = (path: string) => {
     setExpanded((prev) => ({ ...prev, [path]: !prev[path] }))
   }
@@ -93,7 +110,7 @@ export default function FileBrowser() {
 
       {/* New Note Button */}
       <div className="p-3 border-t border-border-divider">
-        <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary border border-border-default rounded-md hover:bg-bg-hover transition-colors">
+        <button onClick={() => useKMSStore.getState().setShowNewNoteDialog(true)} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary border border-border-default rounded-md hover:bg-bg-hover transition-colors">
           <Plus className="w-4 h-4" />
           <span>新建笔记</span>
         </button>

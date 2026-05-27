@@ -32,6 +32,9 @@ interface KMSStore {
   activeView: "notes" | "diary" | "graph" | "tasks" | "ai";
   activeSpace: string;
 
+  // Dialog
+  showNewNoteDialog: boolean;
+
   // Actions
   loadNotes: (dir?: string) => Promise<void>;
   loadNote: (path: string) => Promise<void>;
@@ -45,6 +48,7 @@ interface KMSStore {
   setCurrentNote: (note: Note | null) => void;
   clearSearch: () => void;
   clearError: () => void;
+  setShowNewNoteDialog: (show: boolean) => void;
 }
 
 export const useKMSStore = create<KMSStore>((set, get) => ({
@@ -59,6 +63,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   graphData: null,
   activeView: "notes",
   activeSpace: "",
+  showNewNoteDialog: false,
 
   loadNotes: async (dir) => {
     set({ notesLoading: true });
@@ -143,6 +148,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   setCurrentNote: (note) => set({ currentNote: note }),
   clearSearch: () => set({ searchResults: [], searchQuery: "" }),
   clearError: () => set({ error: null }),
+  setShowNewNoteDialog: (show) => set({ showNewNoteDialog: show }),
 }));
 
 function buildFileTree(notes: Note[]): TreeNode[] {

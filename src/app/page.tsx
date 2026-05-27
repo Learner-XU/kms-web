@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import LeftNav from "@/components/LeftNav"
 import FileBrowser from "@/components/FileBrowser"
 import MainEditor from "@/components/MainEditor"
@@ -11,8 +10,7 @@ import NewNoteDialog from "@/components/NewNoteDialog"
 import { useKMSStore } from "@/lib/store"
 
 export default function Home() {
-  const { activeView, createNote } = useKMSStore()
-  const [showNewNote, setShowNewNote] = useState(false)
+  const { activeView, createNote, error, clearError, notes, fileTree, notesLoading, showNewNoteDialog, setShowNewNoteDialog } = useKMSStore()
 
   const handleCreateNote = async (title: string, path: string, type: string) => {
     await createNote(title, path, type)
@@ -20,6 +18,17 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg-primary">
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed top-4 right-4 z-50 bg-red-900/90 text-red-200 px-4 py-3 rounded-md text-sm flex items-center gap-3 shadow-lg">
+          <span>{error}</span>
+          <button onClick={clearError} className="text-red-400 hover:text-red-200 font-bold">×</button>
+        </div>
+      )}
+      {/* Debug Info (remove in production) */}
+      <div className="fixed bottom-2 right-2 z-50 text-[10px] text-text-muted bg-bg-card/80 px-2 py-1 rounded">
+        notes:{notes.length} tree:{fileTree.length} loading:{notesLoading ? 'Y' : 'N'} view:{activeView}
+      </div>
       <LeftNav />
       {activeView === "notes" && (
         <>
@@ -48,8 +57,8 @@ export default function Home() {
       )}
 
       <NewNoteDialog
-        isOpen={showNewNote}
-        onClose={() => setShowNewNote(false)}
+        isOpen={showNewNoteDialog}
+        onClose={() => setShowNewNoteDialog(false)}
         onSubmit={handleCreateNote}
       />
     </div>
