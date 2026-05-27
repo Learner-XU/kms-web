@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Note, notesAPI, searchAPI, graphAPI, SearchResult, GraphData } from "./api";
+import { Note, notesAPI, searchAPI, graphAPI, authAPI, SearchResult, GraphData, AuthUser, setToken, clearToken, getToken } from "./api";
 
 interface TreeNode {
   name: string;
@@ -9,6 +9,10 @@ interface TreeNode {
 }
 
 interface KMSStore {
+  // Auth
+  user: AuthUser | null;
+  authLoading: boolean;
+
   // Notes
   notes: Note[];
   currentNote: Note | null;
@@ -49,6 +53,10 @@ interface KMSStore {
   clearSearch: () => void;
   clearError: () => void;
   setShowNewNoteDialog: (show: boolean) => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, nickname?: string) => Promise<void>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const useKMSStore = create<KMSStore>((set, get) => ({
@@ -63,6 +71,8 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   graphData: null,
   activeView: "notes",
   activeSpace: "",
+  user: null,
+  authLoading: true,
   showNewNoteDialog: false,
 
   loadNotes: async (dir) => {
@@ -149,6 +159,36 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   clearSearch: () => set({ searchResults: [], searchQuery: "" }),
   clearError: () => set({ error: null }),
   setShowNewNoteDialog: (show) => set({ showNewNoteDialog: show }),
+  login: async (username, password) => {
+    const res = await authAPI.login(username, password);
+    setToken(res.access_token);
+    localStorage.setItem("refresh_token", res.refresh_token);
+    set({ user: res.user });
+  },
+  register: async (username, email, password, nickname) => {
+    const res = await authAPI.register(username, email, password, nickname);
+    setToken(res.access_token);
+    localStorage.setItem("refresh_token", res.refresh_token);
+    set({ user: res.user });
+  },
+  logout: () => {
+    clearToken();
+    set({ user: null, notes: [], currentNote: null, fileTree: [] });
+  },
+  checkAuth: async () => {
+    const token = getToken();
+    if (!token) {
+      set({ authLoading: false });
+      return;
+    }
+    try {
+      const user = await authAPI.me();
+      set({ user, authLoading: false });
+    } catch {
+      clearToken();
+      set({ user: null, authLoading: false });
+    }
+  },
 }));
 
 function buildFileTree(notes: Note[]): TreeNode[] {

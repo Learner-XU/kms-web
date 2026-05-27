@@ -5,6 +5,7 @@ import {
   Home, FileText, Calendar, Network, CheckSquare, Bot,
   ChevronDown, ChevronRight, Plus, Settings,
   Clock, Bookmark, Star, Lightbulb, Brain,
+  LogOut, User,
 } from "lucide-react"
 import { useKMSStore } from "@/lib/store"
 
@@ -40,7 +41,7 @@ const iconMap: Record<string, React.ElementType> = {
 }
 
 export default function LeftNav() {
-  const { activeView, setActiveView, setActiveSpace, loadNotes } = useKMSStore()
+  const { activeView, setActiveView, setActiveSpace, loadNotes, user, logout } = useKMSStore()
   const [expandedSpaces, setExpandedSpaces] = useState<Record<string, boolean>>({
     engineering: true,
   })
@@ -143,6 +144,24 @@ export default function LeftNav() {
           </div>
         </Section>
       </div>
+
+      {/* User Info */}
+      {user && (
+        <div className="p-3 border-t border-border-divider">
+          <div className="flex items-center gap-2 px-2">
+            <div className="w-7 h-7 rounded-full bg-accent-purple/20 flex items-center justify-center">
+              <User className="w-4 h-4 text-accent-purple" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-text-primary truncate">{user.nickname || user.username}</div>
+              <div className="text-[11px] text-text-muted truncate">@{user.username}</div>
+            </div>
+            <button onClick={logout} className="text-text-muted hover:text-red-400 transition-colors" title="退出登录">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

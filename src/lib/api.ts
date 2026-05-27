@@ -1,6 +1,23 @@
 // 使用相对路径，通过 Next.js rewrite 代理到后端
 const API_BASE = "";
 
+// Token management
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("access_token");
+}
+
+function setToken(token: string) {
+  localStorage.setItem("access_token", token);
+}
+
+function clearToken() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+}
+
+export { getToken, setToken, clearToken };
+
 function sanitizePath(path: string): string {
   if (path.includes('..')) {
     throw new Error('Invalid path: contains ..');
@@ -79,14 +96,25 @@ export interface GraphData {
 }
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...options?.headers as Record<string, string>,
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken();
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+    }
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || `API error: ${res.status}`);
   }
@@ -135,4 +163,42 @@ export const graphAPI = {
   get: () => fetchAPI<GraphData>("/api/graph"),
 
   orphans: () => fetchAPI<{ orphans: GraphNode[] }>("/api/graph/orphans"),
+};
+
+// Auth
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  nickname: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user: AuthUser;
+}
+
+export const authAPI = {
+  login: (username: string, password: string) =>
+    fetchAPI<AuthResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+
+  register: (username: string, email: string, password: string, nickname?: string) =>
+    fetchAPI<AuthResponse>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ username, email, password, nickname }),
+    }),
+
+  me: () => fetchAPI<AuthUser>("/api/auth/me"),
+
+  refresh: (refreshToken: string) =>
+    fetchAPI<AuthResponse>("/api/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    }),
 };
