@@ -15,7 +15,7 @@ export default function Home() {
   const [showNewNote, setShowNewNote] = useState(false)
 
   const handleCreateNote = async (title: string, path: string, type: string) => {
-    await createNote(title, path)
+    await createNote(title, path, type)
   }
 
   return (

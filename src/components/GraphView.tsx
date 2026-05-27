@@ -169,6 +169,30 @@ export default function GraphView() {
     renderGraph()
   }, [renderGraph])
 
+  // Cleanup simulation on unmount
+  useEffect(() => {
+    return () => {
+      if (simulationRef.current) {
+        simulationRef.current.stop()
+      }
+    }
+  }, [])
+
+  // ResizeObserver for responsive dimensions
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        setDimensions({ width, height })
+      }
+    })
+    observer.observe(containerRef.current)
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
   const handleZoomIn = () => {
     const fn = (svgRef.current as any)?.__zoomIn
     if (fn) fn()

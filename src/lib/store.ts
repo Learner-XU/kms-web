@@ -14,6 +14,9 @@ interface KMSStore {
   currentNote: Note | null;
   notesLoading: boolean;
 
+  // Error
+  error: string | null;
+
   // File tree
   fileTree: TreeNode[];
 
@@ -32,7 +35,7 @@ interface KMSStore {
   // Actions
   loadNotes: (dir?: string) => Promise<void>;
   loadNote: (path: string) => Promise<void>;
-  createNote: (title: string, path: string) => Promise<void>;
+  createNote: (title: string, path: string, type?: string) => Promise<void>;
   updateNote: (path: string, content: string) => Promise<void>;
   deleteNote: (path: string) => Promise<void>;
   search: (query: string) => Promise<void>;
@@ -41,12 +44,14 @@ interface KMSStore {
   setActiveSpace: (space: string) => void;
   setCurrentNote: (note: Note | null) => void;
   clearSearch: () => void;
+  clearError: () => void;
 }
 
 export const useKMSStore = create<KMSStore>((set, get) => ({
   notes: [],
   currentNote: null,
   notesLoading: false,
+  error: null,
   fileTree: [],
   searchResults: [],
   searchQuery: "",
@@ -64,7 +69,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const tree = buildFileTree(notes);
       set({ fileTree: tree });
     } catch {
-      set({ notesLoading: false });
+      set({ notesLoading: false, error: 'Failed to load notes' });
     }
   },
 
@@ -73,16 +78,16 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const note = await notesAPI.get(path);
       set({ currentNote: note });
     } catch (e) {
-      console.error("load note failed:", e);
+      set({ error: 'Failed to load note' });
     }
   },
 
-  createNote: async (title, path) => {
+  createNote: async (title, path, type?) => {
     try {
-      const note = await notesAPI.create({ title, path });
+      const note = await notesAPI.create({ title, path, type });
       set((s) => ({ notes: [...s.notes, note], currentNote: note }));
     } catch (e) {
-      console.error("create note failed:", e);
+      set({ error: 'Failed to create note' });
     }
   },
 
@@ -94,7 +99,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
         currentNote: note,
       }));
     } catch (e) {
-      console.error("update note failed:", e);
+      set({ error: 'Failed to update note' });
     }
   },
 
@@ -106,7 +111,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
         currentNote: s.currentNote?.path === path ? null : s.currentNote,
       }));
     } catch (e) {
-      console.error("delete note failed:", e);
+      set({ error: 'Failed to delete note' });
     }
   },
 
@@ -120,7 +125,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const { results } = await searchAPI.search(query);
       set({ searchResults: results || [], searchLoading: false });
     } catch {
-      set({ searchLoading: false });
+      set({ searchLoading: false, error: 'Search failed' });
     }
   },
 
@@ -129,7 +134,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const data = await graphAPI.get();
       set({ graphData: data });
     } catch (e) {
-      console.error("load graph failed:", e);
+      set({ error: 'Failed to load graph' });
     }
   },
 
@@ -137,6 +142,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   setActiveSpace: (space) => set({ activeSpace: space }),
   setCurrentNote: (note) => set({ currentNote: note }),
   clearSearch: () => set({ searchResults: [], searchQuery: "" }),
+  clearError: () => set({ error: null }),
 }));
 
 function buildFileTree(notes: Note[]): TreeNode[] {

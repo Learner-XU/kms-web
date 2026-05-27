@@ -1,6 +1,13 @@
 // 使用相对路径，通过 Next.js rewrite 代理到后端
 const API_BASE = "";
 
+function sanitizePath(path: string): string {
+  if (path.includes('..')) {
+    throw new Error('Invalid path: contains ..');
+  }
+  return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+}
+
 export interface Note {
   id: string;
   title: string;
@@ -92,20 +99,20 @@ export const notesAPI = {
     fetchAPI<{ notes: Note[] }>(`/api/notes${dir ? `?dir=${dir}` : ""}`),
 
   get: (path: string) =>
-    fetchAPI<Note>(`/api/notes/${path}`),
+    fetchAPI<Note>(`/api/notes/${sanitizePath(path)}`),
 
   create: (data: CreateNoteRequest) =>
     fetchAPI<Note>("/api/notes", { method: "POST", body: JSON.stringify(data) }),
 
   update: (path: string, data: UpdateNoteRequest) =>
-    fetchAPI<Note>(`/api/notes/${path}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchAPI<Note>(`/api/notes/${sanitizePath(path)}`, { method: "PUT", body: JSON.stringify(data) }),
 
   delete: (path: string) =>
-    fetchAPI<{ status: string }>(`/api/notes/${path}`, { method: "DELETE" }),
+    fetchAPI<{ status: string }>(`/api/notes/${sanitizePath(path)}`, { method: "DELETE" }),
 
   history: (path: string) =>
     fetchAPI<{ commits: { sha: string; message: string; created: string; author: { name: string } }[] }>(
-      `/api/history/${path}`
+      `/api/history/${sanitizePath(path)}`
     ),
 };
 
@@ -120,7 +127,7 @@ export const searchAPI = {
   },
 
   backlinks: (noteId: string) =>
-    fetchAPI<{ backlinks: SearchResult[] }>(`/api/backlinks/${noteId}`),
+    fetchAPI<{ backlinks: SearchResult[] }>(`/api/backlinks/${sanitizePath(noteId)}`),
 };
 
 // Graph

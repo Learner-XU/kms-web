@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronDown, ChevronRight, Search, Plus, Folder, FolderOpen, FileText } from "lucide-react"
 import { useKMSStore } from "@/lib/store"
 
 export default function FileBrowser() {
-  const { fileTree, loadNotes, loadNote, notes, search, searchQuery, clearSearch } = useKMSStore()
+  const { fileTree, loadNotes, loadNote, notes, search, searchResults, searchQuery, clearSearch } = useKMSStore()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [selected, setSelected] = useState("")
   const [inputValue, setInputValue] = useState("")
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     loadNotes()
@@ -25,8 +26,13 @@ export default function FileBrowser() {
 
   const handleSearch = (value: string) => {
     setInputValue(value)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
     if (value.trim()) {
-      search(value)
+      debounceRef.current = setTimeout(() => {
+        search(value)
+      }, 400)
     } else {
       clearSearch()
     }
@@ -53,9 +59,9 @@ export default function FileBrowser() {
         {searchQuery ? (
           <div>
             <div className="px-3 py-2 text-xs text-text-muted">
-              搜索 &quot;{searchQuery}&quot; · {notes.length} 结果
+              搜索 &quot;{searchQuery}&quot; · {searchResults.length} 结果
             </div>
-            {notes.map((note) => (
+            {searchResults.map((note) => (
               <div
                 key={note.id}
                 className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded transition-colors ${

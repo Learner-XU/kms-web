@@ -24,7 +24,7 @@ export default function MainEditor() {
                   <span className="text-[11px] text-text-muted">{r.path}</span>
                 </div>
                 {r.summary && <p className="text-sm text-text-tertiary mb-2">{r.summary}</p>}
-                {r.snippet && <p className="text-xs text-text-muted" dangerouslySetInnerHTML={{ __html: r.snippet }} />}
+                {r.snippet && <p className="text-xs text-text-muted">{r.snippet}</p>}
                 <div className="flex gap-1.5 mt-2">
                   {r.tags?.map((t) => (
                     <span key={t} className="px-2 py-0.5 text-[10px] text-accent-blue bg-accent-blue/15 rounded-full">#{t}</span>
