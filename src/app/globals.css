@@ -1,63 +1,94 @@
 @import "tailwindcss";
 
 :root {
-  /* Background */
-  --bg-primary: #121316;
-  --bg-sidebar: #1a1b1e;
-  --bg-selected: #2d3748;
-  --bg-card: #2a2b2e;
-  --bg-code: #111114;
-  --bg-hover: #252830;
+  /* ─── Neutral Scale (Zinc-based, cool-neutral) ─── */
+  --bg-base: #09090b;
+  --bg-surface: #111113;
+  --bg-elevated: #18181b;
+  --bg-overlay: #1c1c1f;
+  --bg-muted: #27272a;
+  --bg-subtle: #3f3f46;
 
-  /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #e0e0e0;
-  --text-tertiary: #a0a0a0;
-  --text-muted: #666666;
+  /* ─── Semantic Backgrounds ─── */
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-active: rgba(255, 255, 255, 0.08);
+  --bg-selected: rgba(255, 255, 255, 0.06);
 
-  /* Accent */
-  --accent-blue: #3b82f6;
-  --accent-purple: #7c3aed;
-  --accent-green: #22c55e;
-  --accent-yellow: #f59e0b;
-  --accent-cyan: #06b6d4;
+  /* ─── Text Scale ─── */
+  --text-primary: #fafafa;
+  --text-secondary: #d4d4d8;
+  --text-tertiary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-ghost: #52525b;
 
-  /* Border */
-  --border-default: #333333;
-  --border-code: #222222;
-  --border-divider: #2a2a2a;
+  /* ─── Single Accent (Indigo — not AI-purple, not generic blue) ─── */
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-muted: rgba(99, 102, 241, 0.15);
+  --accent-subtle: rgba(99, 102, 241, 0.08);
+
+  /* ─── Semantic Colors (used sparingly, for status only) ─── */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-danger: #ef4444;
+  --color-info: #06b6d4;
+
+  /* ─── Border ─── */
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-emphasis: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(99, 102, 241, 0.3);
+
+  /* ─── Radius ─── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
 }
 
 @theme inline {
-  --color-bg-primary: var(--bg-primary);
-  --color-bg-sidebar: var(--bg-sidebar);
-  --color-bg-selected: var(--bg-selected);
-  --color-bg-card: var(--bg-card);
-  --color-bg-code: var(--bg-code);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-bg-muted: var(--bg-muted);
+  --color-bg-subtle: var(--bg-subtle);
+
   --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+  --color-bg-selected: var(--bg-selected);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
   --color-text-muted: var(--text-muted);
+  --color-text-ghost: var(--text-ghost);
 
-  --color-accent-blue: var(--accent-blue);
-  --color-accent-purple: var(--accent-purple);
-  --color-accent-green: var(--accent-green);
-  --color-accent-yellow: var(--accent-yellow);
-  --color-accent-cyan: var(--accent-cyan);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-subtle: var(--accent-subtle);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+  --color-info: var(--color-info);
 
   --color-border-default: var(--border-default);
-  --color-border-code: var(--border-code);
-  --color-border-divider: var(--border-divider);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-emphasis: var(--border-emphasis);
+  --color-border-accent: var(--border-accent);
 
-  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+  /* ─── Geist (not Inter) ─── */
+  --font-sans: "Geist", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
+
+/* ─── Base ─── */
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: var(--bg-subtle) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -69,18 +100,48 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #333;
-  border-radius: 3px;
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-full);
 }
 
 body {
-  background: var(--bg-primary);
+  background: var(--bg-base);
   color: var(--text-secondary);
   font-family: var(--font-sans);
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
-  color: #fff;
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+/* ─── Focus Ring (consistent across all interactive elements) ─── */
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Input base ─── */
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* ─── Skeleton Animation ─── */
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-muted) 25%, var(--bg-subtle) 50%, var(--bg-muted) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }

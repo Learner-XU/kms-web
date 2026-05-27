@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useKMSStore } from "@/lib/store"
+import { Brain } from "@phosphor-icons/react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,39 +29,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-bg-base px-4">
+      <div className="w-full max-w-[340px]">
+        {/* Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text-primary">KMS 知识管理系统</h1>
-          <p className="text-sm text-text-muted mt-2">登录你的账户</p>
+          <div className="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center mx-auto mb-4">
+            <Brain weight="fill" className="w-5 h-5 text-accent" />
+          </div>
+          <h1 className="text-lg font-semibold text-text-primary tracking-tight">Second Brain</h1>
+          <p className="text-[13px] text-text-muted mt-1">登录你的知识库</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-bg-card border border-border-default rounded-lg p-6 space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-500/15 text-red-400 text-sm px-3 py-2 rounded">
+            <div className="bg-danger/10 border border-danger/20 text-[13px] text-danger px-3 py-2.5 rounded-lg">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm text-text-secondary mb-1.5">用户名</label>
+            <label className="block text-[11px] text-text-ghost mb-1.5">用户名</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-bg-primary border border-border-default rounded-md px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-blue"
+              className="w-full bg-bg-surface border border-border-default rounded-lg px-3 py-2.5 text-[13px] text-text-primary placeholder:text-text-ghost outline-none focus:border-border-accent transition-colors"
               placeholder="输入用户名"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm text-text-secondary mb-1.5">密码</label>
+            <label className="block text-[11px] text-text-ghost mb-1.5">密码</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-bg-primary border border-border-default rounded-md px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-blue"
+              className="w-full bg-bg-surface border border-border-default rounded-lg px-3 py-2.5 text-[13px] text-text-primary placeholder:text-text-ghost outline-none focus:border-border-accent transition-colors"
               placeholder="输入密码"
               required
             />
@@ -69,14 +75,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-accent-blue text-white py-2 rounded-md text-sm font-medium hover:bg-accent-blue/80 transition-colors disabled:opacity-50"
+            className="w-full bg-accent text-white py-2.5 rounded-lg text-[13px] font-medium hover:bg-accent-hover active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {loading ? "登录中..." : "登录"}
           </button>
 
-          <p className="text-center text-sm text-text-muted">
+          <p className="text-center text-xs text-text-ghost">
             还没有账户？{" "}
-            <Link href="/register" className="text-accent-blue hover:underline">
+            <Link href="/register" className="text-accent hover:text-accent-hover transition-colors">
               注册
             </Link>
           </p>
