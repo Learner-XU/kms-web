@@ -7,9 +7,12 @@ import { useShallow } from "zustand/react/shallow"
 import { formatDate } from "@/lib/utils"
 
 export default function MainEditor() {
-  const { currentNote, updateNote, loadNote, searchResults, searchQuery, setShowRightSidebar } = useKMSStore(
-    useShallow((s) => ({ currentNote: s.currentNote, updateNote: s.updateNote, loadNote: s.loadNote, searchResults: s.searchResults, searchQuery: s.searchQuery, setShowRightSidebar: s.setShowRightSidebar }))
+  const { currentNote, searchResults, searchQuery } = useKMSStore(
+    useShallow((s) => ({ currentNote: s.currentNote, searchResults: s.searchResults, searchQuery: s.searchQuery }))
   )
+  const updateNote = useKMSStore((s) => s.updateNote)
+  const loadNote = useKMSStore((s) => s.loadNote)
+  const setShowRightSidebar = useKMSStore((s) => s.setShowRightSidebar)
   const [editContent, setEditContent] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)

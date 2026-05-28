@@ -60,7 +60,7 @@ export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string
   useEffect(() => {
     fetchStats<Stats>("/api/stats")
       .then(setStats)
-      .catch(() => {})
+      .catch((e) => { console.error("Failed to load stats:", e) })
       .finally(() => setLoading(false))
   }, [])
 

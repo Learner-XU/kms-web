@@ -35,7 +35,9 @@ export default function TasksView() {
     try {
       const res = await issuesAPI.listLabels()
       setLabels(res.labels || [])
-    } catch {}
+    } catch (e) {
+      console.error("Failed to load labels:", e)
+    }
   }, [])
 
   useEffect(() => { loadIssues() }, [loadIssues])
@@ -49,7 +51,9 @@ export default function TasksView() {
       if (selectedIssue?.number === issue.number) {
         setSelectedIssue(null)
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to toggle issue state:", e)
+    }
   }
 
   const openCount = issues.filter(i => i.state === "open").length
@@ -221,7 +225,7 @@ function IssueDetailPanel({ issue, labels: allLabels, onClose, onToggle, onRefre
     setLoadingComments(true)
     issuesAPI.listComments(issue.number)
       .then(res => setComments(res.comments || []))
-      .catch(() => {})
+      .catch((e) => { console.error("Failed to load comments:", e) })
       .finally(() => setLoadingComments(false))
   }, [issue.number])
 
@@ -233,7 +237,9 @@ function IssueDetailPanel({ issue, labels: allLabels, onClose, onToggle, onRefre
       const res = await issuesAPI.listComments(issue.number)
       setComments(res.comments || [])
       onRefresh()
-    } catch {}
+    } catch (e) {
+      console.error("Failed to add comment:", e)
+    }
   }
 
   const isOpen = issue.state === "open"
@@ -336,7 +342,9 @@ function CreateIssueDialog({ labels: allLabels, onClose, onCreate }: {
     setSubmitting(true)
     try {
       await onCreate(title, body, selectedLabels)
-    } catch {}
+    } catch (e) {
+      console.error("Failed to create issue:", e)
+    }
     setSubmitting(false)
   }
 

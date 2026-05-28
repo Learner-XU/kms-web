@@ -81,12 +81,16 @@ interface FileBrowserProps {
 }
 
 export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
-  const { notes, loadNotes, loadNote, createNote, search, searchResults, searchQuery, clearSearch } = useKMSStore(
+  const { notes, searchResults, searchQuery } = useKMSStore(
     useShallow((s) => ({
-      notes: s.notes, loadNotes: s.loadNotes, loadNote: s.loadNote, createNote: s.createNote,
-      search: s.search, searchResults: s.searchResults, searchQuery: s.searchQuery, clearSearch: s.clearSearch,
+      notes: s.notes, searchResults: s.searchResults, searchQuery: s.searchQuery,
     }))
   )
+  const loadNotes = useKMSStore((s) => s.loadNotes)
+  const loadNote = useKMSStore((s) => s.loadNote)
+  const createNote = useKMSStore((s) => s.createNote)
+  const search = useKMSStore((s) => s.search)
+  const clearSearch = useKMSStore((s) => s.clearSearch)
   const fileTree = useMemo(() => buildFileTree(notes), [notes])
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [selected, setSelected] = useState("")
@@ -128,7 +132,7 @@ export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
         return { ...prev, ...newEntries }
       })
     }
-  }, [notes])
+  }, [fileTree])
 
   // Focus the create input when it appears
   useEffect(() => {

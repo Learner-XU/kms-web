@@ -81,7 +81,8 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
     try {
       const { notes } = await notesAPI.list(dir);
       set({ notes, notesLoading: false });
-    } catch {
+    } catch (e) {
+      console.error("[loadNotes]", e)
       set({ notesLoading: false, error: 'Failed to load notes' });
     }
   },
@@ -91,6 +92,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const note = await notesAPI.get(path);
       set({ currentNote: note });
     } catch (e) {
+      console.error("[loadNote]", e)
       set({ error: 'Failed to load note' });
     }
   },
@@ -100,6 +102,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const note = await notesAPI.create({ title, path, type });
       set((s) => ({ notes: [...s.notes, note], currentNote: note }));
     } catch (e) {
+      console.error("[createNote]", e)
       set({ error: 'Failed to create note' });
       throw e;
     }
@@ -113,6 +116,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
         currentNote: note,
       }));
     } catch (e) {
+      console.error("[updateNote]", e)
       set({ error: 'Failed to update note' });
       throw e;
     }
@@ -126,6 +130,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
         currentNote: s.currentNote?.path === path ? null : s.currentNote,
       }));
     } catch (e) {
+      console.error("[deleteNote]", e)
       set({ error: 'Failed to delete note' });
     }
   },
@@ -139,7 +144,8 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
     try {
       const { results } = await searchAPI.search(query);
       set({ searchResults: results || [], searchLoading: false });
-    } catch {
+    } catch (e) {
+      console.error("[search]", e)
       set({ searchLoading: false, error: 'Search failed' });
     }
   },
@@ -149,6 +155,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       const data = await graphAPI.get();
       set({ graphData: data });
     } catch (e) {
+      console.error("[loadGraph]", e)
       set({ error: 'Failed to load graph' });
     }
   },
@@ -169,6 +176,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       localStorage.setItem("refresh_token", res.refresh_token);
       set({ user: res.user });
     } catch (e) {
+      console.error("[login]", e)
       set({ error: 'Login failed' });
       throw e;
     }
@@ -180,6 +188,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       localStorage.setItem("refresh_token", res.refresh_token);
       set({ user: res.user });
     } catch (e) {
+      console.error("[register]", e)
       set({ error: 'Registration failed' });
       throw e;
     }
@@ -197,7 +206,8 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
     try {
       const user = await authAPI.me();
       set({ user, authLoading: false });
-    } catch {
+    } catch (e) {
+      console.warn("[checkAuth] token invalid:", e)
       clearToken();
       set({ user: null, authLoading: false });
     }
