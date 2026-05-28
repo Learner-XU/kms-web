@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   FileText, Calendar, Graph, CheckSquare, Robot,
   CaretDown, CaretRight, Plus, Gear,
   Clock, Bookmark, Star, Lightbulb, Brain,
-  SignOut, User, SidebarSimple,
+  SignOut, User, SidebarSimple, IdentificationCard,
 } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { motion, AnimatePresence } from "motion/react"
+import { useRouter } from "next/navigation"
 
 const workspaces = [
   { name: "笔记", icon: FileText, view: "notes" as const },
@@ -90,15 +91,7 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
           )
         })}
         <div className="flex-1" />
-        {user && (
-          <button
-            onClick={logout}
-            className="w-8 h-8 rounded-full bg-bg-muted flex items-center justify-center text-text-ghost hover:text-danger transition-colors"
-            title={`${user.nickname || user.username} · 退出`}
-          >
-            <User weight="bold" className="w-3.5 h-3.5" />
-          </button>
-        )}
+        {user && <UserMenu user={user} logout={logout} collapsed={true} />}
       </div>
     )
   }
@@ -204,22 +197,7 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
       </div>
 
       {/* User */}
-      {user && (
-        <div className="px-3 py-3 border-t border-border-subtle shrink-0">
-          <div className="flex items-center gap-2.5 px-2">
-            <div className="w-7 h-7 rounded-full bg-bg-muted flex items-center justify-center">
-              <User weight="bold" className="w-3.5 h-3.5 text-text-tertiary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] text-text-primary truncate leading-tight">{user.nickname || user.username}</div>
-              <div className="text-[11px] text-text-muted truncate">@{user.username}</div>
-            </div>
-            <button onClick={logout} className="text-text-ghost hover:text-danger transition-colors" title="退出登录">
-              <SignOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      {user && <UserMenu user={user} logout={logout} collapsed={false} />}
     </div>
   )
 }
@@ -247,6 +225,85 @@ function NavItem({ children, active, onClick }: { children: React.ReactNode; act
       onClick={onClick}
     >
       {children}
+    </div>
+  )
+}
+
+function UserMenu({ user, logout, collapsed }: { user: { nickname?: string; username: string }; logout: () => void; collapsed: boolean }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener("mousedown", close)
+    return () => document.removeEventListener("mousedown", close)
+  }, [open])
+
+  const menuItems = [
+    { label: "个人简历", icon: IdentificationCard, action: () => { router.push("/profile"); setOpen(false) } },
+    { label: "退出登录", icon: SignOut, action: logout, danger: true },
+  ]
+
+  if (collapsed) {
+    return (
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="w-8 h-8 rounded-full bg-bg-muted flex items-center justify-center text-text-ghost hover:text-text-secondary transition-colors"
+          title={user.nickname || user.username}
+        >
+          <User weight="bold" className="w-3.5 h-3.5" />
+        </button>
+        {open && (
+          <div className="absolute bottom-full left-0 mb-1 w-40 bg-bg-elevated border border-border-default rounded-lg shadow-xl py-1 z-50">
+            {menuItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={item.action}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] transition-colors ${
+                  item.danger ? "text-danger hover:bg-danger/10" : "text-text-secondary hover:bg-bg-hover"
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative px-3 py-3 border-t border-border-subtle shrink-0" ref={ref}>
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-2.5 px-2 hover:bg-bg-hover rounded-md py-1 transition-colors">
+        <div className="w-7 h-7 rounded-full bg-bg-muted flex items-center justify-center shrink-0">
+          <User weight="bold" className="w-3.5 h-3.5 text-text-tertiary" />
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <div className="text-[13px] text-text-primary truncate leading-tight">{user.nickname || user.username}</div>
+          <div className="text-[11px] text-text-muted truncate">@{user.username}</div>
+        </div>
+        <CaretDown className={`w-3 h-3 text-text-ghost transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute bottom-full left-3 right-3 mb-1 bg-bg-elevated border border-border-default rounded-lg shadow-xl py-1 z-50">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] transition-colors ${
+                item.danger ? "text-danger hover:bg-danger/10" : "text-text-secondary hover:bg-bg-hover"
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
