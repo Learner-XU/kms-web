@@ -9,7 +9,9 @@ const PUBLIC_PATHS = ["/login", "/register"]
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { user, authLoading, checkAuth } = useKMSStore()
+  const user = useKMSStore((s) => s.user)
+  const authLoading = useKMSStore((s) => s.authLoading)
+  const checkAuth = useKMSStore((s) => s.checkAuth)
 
   useEffect(() => {
     checkAuth()

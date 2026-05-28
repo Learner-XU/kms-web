@@ -139,6 +139,9 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
         if (newToken) headers["Authorization"] = `Bearer ${newToken}`;
         const retryRes = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
         if (retryRes.ok) return retryRes.json();
+        // Read error details from the retry response, not the original 401
+        const retryErr = await retryRes.json().catch(() => ({ error: retryRes.statusText }));
+        throw new Error(retryErr.error || `API error: ${retryRes.status}`);
       }
       clearToken();
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
@@ -185,7 +188,7 @@ export const searchAPI = {
   },
 
   backlinks: (noteId: string) =>
-    fetchAPI<{ backlinks: SearchResult[] }>(`/api/backlinks/${sanitizePath(noteId)}`),
+    fetchAPI<{ backlinks: SearchResult[] }>(`/api/backlinks/${encodeURIComponent(noteId)}`),
 };
 
 // Graph

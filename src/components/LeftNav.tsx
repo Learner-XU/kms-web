@@ -2,16 +2,16 @@
 
 import { useState } from "react"
 import {
-  House, FileText, Calendar, Graph, CheckSquare, Robot,
+  FileText, Calendar, Graph, CheckSquare, Robot,
   CaretDown, CaretRight, Plus, Gear,
   Clock, Bookmark, Star, Lightbulb, Brain,
-  SignOut, User,
+  SignOut, User, SidebarSimple,
 } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
+import { useShallow } from "zustand/react/shallow"
 import { motion, AnimatePresence } from "motion/react"
 
 const workspaces = [
-  { name: "Home", icon: House, view: "notes" as const },
   { name: "笔记", icon: FileText, view: "notes" as const },
   { name: "日记", icon: Calendar, view: "diary" as const },
   { name: "图谱", icon: Graph, view: "graph" as const },
@@ -35,8 +35,22 @@ const collections = [
 
 const tags = ["Go", "Kubernetes", "分布式系统", "微服务", "设计模式", "AI"]
 
-export default function LeftNav() {
-  const { activeView, setActiveView, setActiveSpace, loadNotes, user, logout } = useKMSStore()
+interface LeftNavProps {
+  collapsed: boolean
+  onToggle: () => void
+}
+
+export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
+  // State values that change - use useShallow
+  const { activeView, user } = useKMSStore(
+    useShallow((s) => ({ activeView: s.activeView, user: s.user }))
+  )
+  // Stable function refs - select individually without useShallow
+  const setActiveView = useKMSStore((s) => s.setActiveView)
+  const setActiveSpace = useKMSStore((s) => s.setActiveSpace)
+  const loadNotes = useKMSStore((s) => s.loadNotes)
+  const logout = useKMSStore((s) => s.logout)
+
   const [expandedSpaces, setExpandedSpaces] = useState<Record<string, boolean>>({
     engineering: true,
   })
@@ -45,16 +59,61 @@ export default function LeftNav() {
     setExpandedSpaces((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
+  // Collapsed: thin icon strip
+  if (collapsed) {
+    return (
+      <div className="w-12 min-w-12 bg-bg-surface border-r border-border-default flex flex-col items-center h-screen overflow-hidden py-3 gap-2">
+        <button
+          onClick={onToggle}
+          className="w-8 h-8 rounded-md flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
+          title="展开侧栏 (⌘\\)"
+        >
+          <SidebarSimple className="w-4 h-4" />
+        </button>
+        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center mt-1 cursor-pointer hover:bg-accent-subtle transition-colors" title="首页">
+          <Brain weight="fill" className="w-4 h-4 text-accent" />
+        </button>
+        <div className="w-6 border-t border-border-subtle my-1" />
+        {workspaces.map((w) => {
+          const isActive = activeView === w.view
+          return (
+            <button
+              key={w.name}
+              onClick={() => setActiveView(w.view)}
+              className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
+                isActive ? "bg-accent-subtle text-accent-hover" : "text-text-ghost hover:text-text-secondary hover:bg-bg-hover"
+              }`}
+              title={w.name}
+            >
+              <w.icon weight={isActive ? "fill" : "regular"} className="w-4 h-4" />
+            </button>
+          )
+        })}
+        <div className="flex-1" />
+        {user && (
+          <button
+            onClick={logout}
+            className="w-8 h-8 rounded-full bg-bg-muted flex items-center justify-center text-text-ghost hover:text-danger transition-colors"
+            title={`${user.nickname || user.username} · 退出`}
+          >
+            <User weight="bold" className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // Expanded: full sidebar
   return (
     <div className="w-60 min-w-60 bg-bg-surface border-r border-border-default flex flex-col h-screen overflow-hidden">
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border-subtle shrink-0">
-        <div className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center">
+        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center cursor-pointer hover:bg-accent-subtle transition-colors">
           <Brain weight="fill" className="w-4 h-4 text-accent" />
-        </div>
+        </button>
         <span className="text-text-primary font-semibold text-[13px] tracking-tight">Second Brain</span>
-        <button className="ml-auto text-text-ghost hover:text-text-tertiary transition-colors">
-          <Gear className="w-4 h-4" />
+        <button onClick={onToggle} className="ml-auto text-text-ghost hover:text-text-tertiary transition-colors" title="收起侧栏 (⌘\\)">
+          <SidebarSimple className="w-4 h-4" />
         </button>
       </div>
 

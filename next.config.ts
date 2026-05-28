@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  allowedDevOrigins: ["192.168.31.104"],
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
+    ? process.env.ALLOWED_DEV_ORIGINS.split(",").map((s) => s.trim())
+    : ["192.168.31.104"],
   async rewrites() {
     const backendUrl = process.env.KMS_API_URL || "http://localhost:8000";
     return [

@@ -3,18 +3,27 @@
 import { useState, useEffect } from "react"
 import { Info, Link, ChartLine, Clock, FileText, X } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
+import { useShallow } from "zustand/react/shallow"
 import { searchAPI, SearchResult } from "@/lib/api"
 import { motion, AnimatePresence } from "motion/react"
+import { formatDate } from "@/lib/utils"
 
 export default function RightSidebar() {
-  const { currentNote, showRightSidebar, setShowRightSidebar } = useKMSStore()
+  const { currentNote, showRightSidebar, setShowRightSidebar } = useKMSStore(
+    useShallow((s) => ({ currentNote: s.currentNote, showRightSidebar: s.showRightSidebar, setShowRightSidebar: s.setShowRightSidebar }))
+  )
   const [backlinks, setBacklinks] = useState<SearchResult[]>([])
+  const [backlinksError, setBacklinksError] = useState<string | null>(null)
 
   useEffect(() => {
     if (showRightSidebar && currentNote?.id) {
-      searchAPI.backlinks(currentNote.id).then(({ backlinks }) => setBacklinks(backlinks || [])).catch(() => {})
+      setBacklinksError(null)
+      searchAPI.backlinks(currentNote.id)
+        .then(({ backlinks }) => setBacklinks(backlinks || []))
+        .catch(() => setBacklinksError("无法加载反向链接"))
     } else {
       setBacklinks([])
+      setBacklinksError(null)
     }
   }, [showRightSidebar, currentNote?.id])
 
@@ -86,7 +95,9 @@ export default function RightSidebar() {
 
             {/* 反向链接 */}
             <Section title={`反向链接 (${backlinks.length})`} icon={<Link className="w-3.5 h-3.5" />}>
-              {backlinks.length === 0 ? (
+              {backlinksError ? (
+                <span className="text-xs text-red-400">{backlinksError}</span>
+              ) : backlinks.length === 0 ? (
                 <span className="text-xs text-text-ghost">暂无反向链接</span>
               ) : (
                 <div className="space-y-0.5">
@@ -153,12 +164,4 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
       {children}
     </div>
   )
-}
-
-function formatDate(d: string) {
-  try {
-    return new Date(d).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })
-  } catch {
-    return d
-  }
 }

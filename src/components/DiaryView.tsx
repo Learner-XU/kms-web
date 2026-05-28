@@ -3,9 +3,12 @@
 import { useState } from "react"
 import { CaretLeft, CaretRight, Plus, FileText } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
+import { useShallow } from "zustand/react/shallow"
 
 export default function DiaryView() {
-  const { notes, loadNote } = useKMSStore()
+  const { notes, loadNote } = useKMSStore(
+    useShallow((s) => ({ notes: s.notes, loadNote: s.loadNote }))
+  )
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
   const year = currentMonth.getFullYear()

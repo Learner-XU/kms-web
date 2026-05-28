@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import { useKMSStore } from "@/lib/store"
+import { useShallow } from "zustand/react/shallow"
 import { Plus, Minus, ArrowsOut } from "@phosphor-icons/react"
 
 interface SimNode extends d3.SimulationNodeDatum {
@@ -40,30 +41,65 @@ const typeColors: Record<string, string> = {
 }
 
 export default function GraphView() {
-  const { graphData, loadGraph, loadNote } = useKMSStore()
+  const { graphData, loadGraph, loadNote } = useKMSStore(
+    useShallow((s) => ({ graphData: s.graphData, loadGraph: s.loadGraph, loadNote: s.loadNote }))
+  )
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const simulationRef = useRef<d3.Simulation<SimNode, SimLink> | null>(null)
+  const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null)
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const nodesDataRef = useRef<SimNode[]>([])
+  const linksDataRef = useRef<SimLink[]>([])
+  const graphDataRef = useRef(graphData)
 
   useEffect(() => { loadGraph() }, [loadGraph])
 
+  // Track latest graphData in ref for dimension resize handler
+  useEffect(() => { graphDataRef.current = graphData }, [graphData])
+
+  // Initialize SVG structure once
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      setDimensions({ width: rect.width, height: rect.height })
-    }
+    if (!svgRef.current) return
+    const svg = d3.select(svgRef.current)
+    svg.selectAll("*").remove()
+    const g = svg.append("g")
+    gRef.current = g
+
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.3, 5])
+      .on("zoom", (event) => { g.attr("transform", event.transform) })
+    svg.call(zoom)
+    zoomRef.current = zoom
+
+    ;(svg.node() as unknown as ZoomableSVG).__zoomIn = () => svg.transition().call(zoom.scaleBy, 1.5)
+    ;(svg.node() as unknown as ZoomableSVG).__zoomOut = () => svg.transition().call(zoom.scaleBy, 0.67)
+    ;(svg.node() as unknown as ZoomableSVG).__fit = () => svg.transition().call(zoom.transform, d3.zoomIdentity)
+
+    // Cleanup
+    return () => { simulationRef.current?.stop() }
   }, [])
 
-  const renderGraph = useCallback(() => {
-    if (!graphData || !svgRef.current) return
+  // Update graph data incrementally when graphData changes
+  useEffect(() => {
+    if (!graphData || !gRef.current || !svgRef.current) return
 
     const { width, height } = dimensions
-    const nodes: SimNode[] = graphData.nodes.map((n) => ({
-      ...n,
-      x: width / 2 + (Math.random() - 0.5) * 300,
-      y: height / 2 + (Math.random() - 0.5) * 300,
-    }))
+    const g = gRef.current
+
+    // Stop existing simulation
+    simulationRef.current?.stop()
+
+    const nodes: SimNode[] = graphData.nodes.map((n) => {
+      // Preserve existing positions if available
+      const existing = nodesDataRef.current.find((e) => e.id === n.id)
+      return {
+        ...n,
+        x: existing?.x ?? width / 2 + (Math.random() - 0.5) * 300,
+        y: existing?.y ?? height / 2 + (Math.random() - 0.5) * 300,
+      }
+    })
 
     const links: SimLink[] = graphData.edges.map((e) => ({
       source: e.source,
@@ -71,14 +107,11 @@ export default function GraphView() {
       weight: e.weight,
     }))
 
-    const svg = d3.select(svgRef.current)
-    svg.selectAll("*").remove()
-    const g = svg.append("g")
+    nodesDataRef.current = nodes
+    linksDataRef.current = links
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.3, 5])
-      .on("zoom", (event) => { g.attr("transform", event.transform) })
-    svg.call(zoom)
+    // Clear and rebuild SVG elements
+    g.selectAll("g").remove()
 
     const simulation = d3.forceSimulation<SimNode>(nodes)
       .force("link", d3.forceLink<SimNode, SimLink>(links).id((d) => d.id).distance(120))
@@ -141,20 +174,21 @@ export default function GraphView() {
         .attr("y2", (d) => (d.target as SimNode).y!)
       node.attr("transform", (d) => `translate(${d.x},${d.y})`)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphData, loadNote])
 
-    ;(svg.node() as unknown as ZoomableSVG).__zoomIn = () => svg.transition().call(zoom.scaleBy, 1.5)
-    ;(svg.node() as unknown as ZoomableSVG).__zoomOut = () => svg.transition().call(zoom.scaleBy, 0.67)
-    ;(svg.node() as unknown as ZoomableSVG).__fit = () => svg.transition().call(zoom.transform, d3.zoomIdentity)
-  }, [graphData, dimensions, loadNote])
-
-  useEffect(() => { renderGraph() }, [renderGraph])
-  useEffect(() => { return () => { simulationRef.current?.stop() } }, [])
-
+  // Update dimensions on resize WITHOUT rebuilding simulation
   useEffect(() => {
     if (!containerRef.current) return
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setDimensions({ width: entry.contentRect.width, height: entry.contentRect.height })
+        const { width, height } = entry.contentRect
+        setDimensions({ width, height })
+        // Update center force and SVG size without rebuilding
+        if (simulationRef.current) {
+          simulationRef.current.force("center", d3.forceCenter(width / 2, height / 2))
+          simulationRef.current.alpha(0.1).restart()
+        }
       }
     })
     observer.observe(containerRef.current)

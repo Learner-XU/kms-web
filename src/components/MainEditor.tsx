@@ -3,12 +3,36 @@
 import { useState, useCallback } from "react"
 import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
+import { useShallow } from "zustand/react/shallow"
+import { formatDate } from "@/lib/utils"
 
 export default function MainEditor() {
-  const { currentNote, updateNote, loadNote, searchResults, searchQuery, setShowRightSidebar } = useKMSStore()
+  const { currentNote, updateNote, loadNote, searchResults, searchQuery, setShowRightSidebar } = useKMSStore(
+    useShallow((s) => ({ currentNote: s.currentNote, updateNote: s.updateNote, loadNote: s.loadNote, searchResults: s.searchResults, searchQuery: s.searchQuery, setShowRightSidebar: s.setShowRightSidebar }))
+  )
   const [editContent, setEditContent] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // All hooks must be declared before any conditional returns (Rules of Hooks)
+  const handleSave = useCallback(async () => {
+    if (currentNote && editContent !== currentNote.content) {
+      setSaveError(null)
+      try {
+        await updateNote(currentNote.path, editContent)
+        setIsEditing(false)
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : '保存失败')
+      }
+    }
+  }, [currentNote, editContent, updateNote])
+
+  const startEdit = useCallback(() => {
+    if (currentNote) {
+      setEditContent(currentNote.content)
+      setIsEditing(true)
+    }
+  }, [currentNote])
 
   // Search results view
   if (searchQuery && searchResults.length > 0 && !currentNote) {
@@ -54,35 +78,10 @@ export default function MainEditor() {
         <div className="text-center">
           <FileText className="w-10 h-10 text-text-ghost mx-auto mb-3" weight="light" />
           <p className="text-sm text-text-muted mb-1">选择一篇笔记</p>
-          <p className="text-xs text-text-ghost">或在左侧新建</p>
+          <p className="text-xs text-text-ghost">点击上方按钮浏览文件</p>
         </div>
       </div>
     )
-  }
-
-  const handleSave = useCallback(async () => {
-    if (currentNote && editContent !== currentNote.content) {
-      setSaveError(null)
-      try {
-        await updateNote(currentNote.path, editContent)
-        setIsEditing(false)
-      } catch (e) {
-        setSaveError(e instanceof Error ? e.message : '保存失败')
-      }
-    }
-  }, [currentNote, editContent, updateNote])
-
-  const startEdit = () => {
-    setEditContent(currentNote.content)
-    setIsEditing(true)
-  }
-
-  const formatDate = (d: string) => {
-    try {
-      return new Date(d).toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" })
-    } catch {
-      return d
-    }
   }
 
   return (
@@ -130,7 +129,7 @@ export default function MainEditor() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[860px] mx-auto px-8 py-8">
+        <div className="max-w-[860px] mx-auto px-4 md:px-8 py-6 md:py-8">
           {/* Save error */}
           {saveError && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">

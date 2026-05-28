@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { Note, notesAPI, searchAPI, graphAPI, authAPI, SearchResult, GraphData, AuthUser, setToken, clearToken, getToken } from "./api";
 
-interface TreeNode {
-  name: string;
-  path: string;
-  type: "file" | "folder";
-  children?: TreeNode[];
-}
 
 interface KMSStore {
   // Auth
@@ -22,7 +16,6 @@ interface KMSStore {
   error: string | null;
 
   // File tree
-  fileTree: TreeNode[];
 
   // Search
   searchResults: SearchResult[];
@@ -69,7 +62,6 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   currentNote: null,
   notesLoading: false,
   error: null,
-  fileTree: [],
   searchResults: [],
   searchQuery: "",
   searchLoading: false,
@@ -86,9 +78,6 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
     try {
       const { notes } = await notesAPI.list(dir);
       set({ notes, notesLoading: false });
-      // Build file tree from notes
-      const tree = buildFileTree(notes);
-      set({ fileTree: tree });
     } catch {
       set({ notesLoading: false, error: 'Failed to load notes' });
     }
@@ -109,15 +98,21 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
       set((s) => ({ notes: [...s.notes, note], currentNote: note }));
     } catch (e) {
       set({ error: 'Failed to create note' });
+      throw e;
     }
   },
 
   updateNote: async (path, content) => {
-    const note = await notesAPI.update(path, { content });
-    set((s) => ({
-      notes: s.notes.map((n) => (n.path === path ? note : n)),
-      currentNote: note,
-    }));
+    try {
+      const note = await notesAPI.update(path, { content });
+      set((s) => ({
+        notes: s.notes.map((n) => (n.path === path ? note : n)),
+        currentNote: note,
+      }));
+    } catch (e) {
+      set({ error: 'Failed to update note' });
+      throw e;
+    }
   },
 
   deleteNote: async (path) => {
@@ -164,20 +159,30 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   setShowRightSidebar: (show) => set({ showRightSidebar: show }),
   toggleRightSidebar: () => set((s) => ({ showRightSidebar: !s.showRightSidebar })),
   login: async (username, password) => {
-    const res = await authAPI.login(username, password);
-    setToken(res.access_token);
-    localStorage.setItem("refresh_token", res.refresh_token);
-    set({ user: res.user });
+    try {
+      const res = await authAPI.login(username, password);
+      setToken(res.access_token);
+      localStorage.setItem("refresh_token", res.refresh_token);
+      set({ user: res.user });
+    } catch (e) {
+      set({ error: 'Login failed' });
+      throw e;
+    }
   },
   register: async (username, email, password, nickname) => {
-    const res = await authAPI.register(username, email, password, nickname);
-    setToken(res.access_token);
-    localStorage.setItem("refresh_token", res.refresh_token);
-    set({ user: res.user });
+    try {
+      const res = await authAPI.register(username, email, password, nickname);
+      setToken(res.access_token);
+      localStorage.setItem("refresh_token", res.refresh_token);
+      set({ user: res.user });
+    } catch (e) {
+      set({ error: 'Registration failed' });
+      throw e;
+    }
   },
   logout: () => {
     clearToken();
-    set({ user: null, notes: [], currentNote: null, fileTree: [] });
+    set({ user: null, notes: [], currentNote: null });
   },
   checkAuth: async () => {
     const token = getToken();
@@ -194,43 +199,3 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
     }
   },
 }));
-
-function buildFileTree(notes: Note[]): TreeNode[] {
-  const root: TreeNode[] = [];
-  const dirMap = new Map<string, TreeNode>();
-
-  for (const note of notes) {
-    const parts = note.path.split("/");
-    let currentPath = "";
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      const parentPath = currentPath;
-      currentPath = currentPath ? `${currentPath}/${part}` : part;
-
-      if (i === parts.length - 1) {
-        // File node
-        const fileNode: TreeNode = { name: note.title, path: note.path, type: "file" };
-        if (parentPath && dirMap.has(parentPath)) {
-          dirMap.get(parentPath)!.children = dirMap.get(parentPath)!.children || [];
-          dirMap.get(parentPath)!.children!.push(fileNode);
-        } else {
-          root.push(fileNode);
-        }
-      } else {
-        // Dir node
-        if (!dirMap.has(currentPath)) {
-          const dirNode: TreeNode = { name: part, path: currentPath, type: "folder", children: [] };
-          dirMap.set(currentPath, dirNode);
-          if (parentPath && dirMap.has(parentPath)) {
-            dirMap.get(parentPath)!.children!.push(dirNode);
-          } else {
-            root.push(dirNode);
-          }
-        }
-      }
-    }
-  }
-
-  return root;
-}
