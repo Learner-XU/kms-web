@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import {
-  ArrowLeft, PencilSimple, FloppyDisk, X, Plus, Trash,
+  PencilSimple, FloppyDisk, X, Plus, Trash,
   MapPin, Envelope, Phone, Globe, GithubLogo, LinkedinLogo,
   Download, Certificate, Lightning, ShoppingCart, ChartBar,
   User, Briefcase, Code, GraduationCap, Trophy,
@@ -105,7 +104,6 @@ const projectIcons: Record<string, typeof Lightning> = {
 /* ── Main Page ── */
 
 export default function ProfilePage() {
-  const router = useRouter()
   const user = useKMSStore(useShallow((s) => s.user))
   const [profile, setProfile] = useState<Profile>(defaultProfile)
   const [editing, setEditing] = useState(false)
@@ -141,11 +139,8 @@ export default function ProfilePage() {
     <div className="flex h-screen w-screen overflow-hidden bg-bg-base">
       {/* ── Left Sidebar ── */}
       <aside className="w-72 min-w-72 bg-bg-surface border-r border-border-default flex flex-col h-screen overflow-y-auto shrink-0">
-        {/* Back + Edit */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2">
-          <button onClick={() => router.back()} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+        {/* Edit controls */}
+        <div className="flex items-center justify-end px-5 pt-4 pb-2">
           {editing ? (
             <div className="flex items-center gap-1">
               <button onClick={cancel} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="取消">

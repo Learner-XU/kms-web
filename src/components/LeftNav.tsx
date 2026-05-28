@@ -243,7 +243,7 @@ function UserMenu({ user, logout, collapsed }: { user: { nickname?: string; user
 
   const menuItems = [
     { label: "概览", icon: Gear, action: () => { router.push("/settings"); setOpen(false) } },
-    { label: "个人简历", icon: IdentificationCard, action: () => { router.push("/profile"); setOpen(false) } },
+    { label: "个人简历", icon: IdentificationCard, action: () => { window.open("/profile", "_blank"); setOpen(false) } },
     { label: "退出登录", icon: SignOut, action: logout, danger: true },
   ]
 
