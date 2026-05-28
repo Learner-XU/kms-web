@@ -6,8 +6,8 @@ import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 
 export default function DiaryView() {
-  const { notes, loadNote } = useKMSStore(
-    useShallow((s) => ({ notes: s.notes, loadNote: s.loadNote }))
+  const { notes, notesLoading, loadNote } = useKMSStore(
+    useShallow((s) => ({ notes: s.notes, notesLoading: s.notesLoading, loadNote: s.loadNote }))
   )
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
@@ -70,6 +70,11 @@ export default function DiaryView() {
           </div>
 
           {/* Day cells */}
+          {notesLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+            </div>
+          ) : (
           <div className="grid grid-cols-7 gap-px">
             {days.map((day, i) => {
               if (day === null) return <div key={`empty-${i}`} className="aspect-square" />
@@ -102,6 +107,7 @@ export default function DiaryView() {
               )
             })}
           </div>
+          )}
         </div>
       </div>
     </div>

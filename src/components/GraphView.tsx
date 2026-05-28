@@ -234,6 +234,16 @@ export default function GraphView() {
         ))}
       </div>
 
+      {/* Loading state */}
+      {!graphData && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-text-muted">加载图谱...</p>
+          </div>
+        </div>
+      )}
+
       {/* Empty state */}
       {graphData && graphData.nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
