@@ -17,7 +17,7 @@ const workspaces = [
   { name: "日记", icon: Calendar, view: "diary" as const },
   { name: "图谱", icon: Graph, view: "graph" as const },
   { name: "任务", icon: CheckSquare, view: "tasks" as const },
-  { name: "AI 助手", icon: Robot, view: "ai" as const },
+  { name: "概览", icon: Robot, view: "ai" as const },
 ]
 
 const spaces = [
@@ -242,6 +242,7 @@ function UserMenu({ user, logout, collapsed }: { user: { nickname?: string; user
   }, [open])
 
   const menuItems = [
+    { label: "概览", icon: Gear, action: () => { router.push("/settings"); setOpen(false) } },
     { label: "个人简历", icon: IdentificationCard, action: () => { router.push("/profile"); setOpen(false) } },
     { label: "退出登录", icon: SignOut, action: logout, danger: true },
   ]

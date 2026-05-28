@@ -194,9 +194,64 @@ export const searchAPI = {
 // Graph
 export const graphAPI = {
   get: () => fetchAPI<GraphData>("/api/graph"),
-
   orphans: () => fetchAPI<{ orphans: GraphNode[] }>("/api/graph/orphans"),
-};
+}
+
+/* ── Issues API ── */
+
+export interface IssueLabel {
+  id: number
+  name: string
+  color: string
+}
+
+export interface Issue {
+  id: number
+  number: number
+  title: string
+  body: string
+  state: string
+  labels: IssueLabel[]
+  created_at: string
+  updated_at: string
+  closed_at: string | null
+  comments: number
+}
+
+export interface IssueComment {
+  id: number
+  body: string
+  created_at: string
+  updated_at: string
+  user: { login: string }
+}
+
+export const issuesAPI = {
+  list: (state = "open", labels?: string) =>
+    fetchAPI<{ issues: Issue[] }>(`/api/issues?state=${state}${labels ? `&labels=${encodeURIComponent(labels)}` : ""}`),
+  get: (index: number) => fetchAPI<Issue>(`/api/issues/${index}`),
+  create: (data: { title: string; body?: string; labels?: string[] }) =>
+    fetchAPI<Issue>("/api/issues", { method: "POST", body: JSON.stringify(data) }),
+  update: (index: number, data: { title?: string; body?: string; state?: string; labels?: string[] }) =>
+    fetchAPI<Issue>(`/api/issues/${index}`, { method: "PATCH", body: JSON.stringify(data) }),
+  listLabels: () => fetchAPI<{ labels: IssueLabel[] }>("/api/issues/labels"),
+  createLabel: (data: { name: string; color: string }) =>
+    fetchAPI<IssueLabel>("/api/issues/labels", { method: "POST", body: JSON.stringify(data) }),
+  listComments: (index: number) => fetchAPI<{ comments: IssueComment[] }>(`/api/issues/${index}/comments`),
+  addComment: (index: number, body: string) =>
+    fetchAPI<IssueComment>(`/api/issues/${index}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
+}
+
+/* ── Tags API ── */
+
+export interface TagInfo {
+  name: string
+  count: number
+}
+
+export const tagsAPI = {
+  list: () => fetchAPI<{ tags: TagInfo[] }>("/api/tags"),
+}
 
 // Auth
 export interface AuthUser {

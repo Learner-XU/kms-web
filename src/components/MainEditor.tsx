@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info } from "@phosphor-icons/react"
+import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { formatDate } from "@/lib/utils"
@@ -120,6 +120,13 @@ export default function MainEditor() {
             title="笔记信息"
           >
             <Info className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => useKMSStore.getState().setShowHistory(true)}
+            className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
+            title="版本历史"
+          >
+            <Clock className="w-4 h-4" />
           </button>
           <button className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors">
             <DotsThree className="w-4 h-4" />

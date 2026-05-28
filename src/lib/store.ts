@@ -34,6 +34,7 @@ interface KMSStore {
 
   // Right sidebar
   showRightSidebar: boolean;
+  showHistory: boolean;
 
   // Actions
   loadNotes: (dir?: string) => Promise<void>;
@@ -50,6 +51,7 @@ interface KMSStore {
   clearError: () => void;
   setShowNewNoteDialog: (show: boolean) => void;
   setShowRightSidebar: (show: boolean) => void;
+  setShowHistory: (show: boolean) => void;
   toggleRightSidebar: () => void;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, nickname?: string) => Promise<void>;
@@ -72,6 +74,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   authLoading: true,
   showNewNoteDialog: false,
   showRightSidebar: false,
+  showHistory: false,
 
   loadNotes: async (dir) => {
     set({ notesLoading: true });
@@ -157,6 +160,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   clearError: () => set({ error: null }),
   setShowNewNoteDialog: (show) => set({ showNewNoteDialog: show }),
   setShowRightSidebar: (show) => set({ showRightSidebar: show }),
+  setShowHistory: (show) => set({ showHistory: show }),
   toggleRightSidebar: () => set((s) => ({ showRightSidebar: !s.showRightSidebar })),
   login: async (username, password) => {
     try {

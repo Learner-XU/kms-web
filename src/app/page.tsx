@@ -7,6 +7,9 @@ import MainEditor from "@/components/MainEditor"
 import RightSidebar from "@/components/RightSidebar"
 import GraphView from "@/components/GraphView"
 import DiaryView from "@/components/DiaryView"
+import TasksView from "@/components/TasksView"
+import HistoryPanel from "@/components/HistoryPanel"
+import StatsView from "@/components/StatsView"
 import NewNoteDialog from "@/components/NewNoteDialog"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
@@ -15,10 +18,12 @@ import { X, List, TreeStructure, Sidebar } from "@phosphor-icons/react"
 import { useIsMobile } from "@/lib/useIsMobile"
 
 export default function Home() {
-  const { activeView, createNote, error, clearError, showNewNoteDialog, setShowNewNoteDialog } = useKMSStore(
+  const { activeView, createNote, error, clearError, showNewNoteDialog, setShowNewNoteDialog, showHistory, setShowHistory, currentNote } = useKMSStore(
     useShallow((s) => ({
       activeView: s.activeView, createNote: s.createNote, error: s.error, clearError: s.clearError,
       showNewNoteDialog: s.showNewNoteDialog, setShowNewNoteDialog: s.setShowNewNoteDialog,
+      showHistory: s.showHistory, setShowHistory: s.setShowHistory,
+      currentNote: s.currentNote,
     }))
   )
 
@@ -123,8 +128,8 @@ export default function Home() {
           />
           {activeView === "graph" && <GraphView />}
           {activeView === "diary" && <DiaryView />}
-          {activeView === "tasks" && <EmptyState title="任务看板" description="对接 Gitea Issues，规划中" />}
-          {activeView === "ai" && <EmptyState title="AI 助手" description="预留功能，后续接入" />}
+          {activeView === "tasks" && <TasksView />}
+          {activeView === "ai" && <StatsView onNoteClick={(path) => { useKMSStore.getState().loadNote(path); useKMSStore.getState().setActiveView("notes") }} />}
         </div>
       )}
 
@@ -143,14 +148,15 @@ export default function Home() {
             <MainEditor />
           )}
           <RightSidebar />
+          {showHistory && currentNote && <HistoryPanel notePath={currentNote.path} onClose={() => setShowHistory(false)} />}
         </>
       )}
 
       {/* Desktop-only views */}
       {!isMobile && activeView === "graph" && <GraphView />}
       {!isMobile && activeView === "diary" && <DiaryView />}
-      {!isMobile && activeView === "tasks" && <EmptyState title="任务看板" description="对接 Gitea Issues，规划中" />}
-      {!isMobile && activeView === "ai" && <EmptyState title="AI 助手" description="预留功能，后续接入" />}
+      {!isMobile && activeView === "tasks" && <TasksView />}
+      {!isMobile && activeView === "ai" && <StatsView onNoteClick={(path) => { useKMSStore.getState().loadNote(path); useKMSStore.getState().setActiveView("notes") }} />}
 
       <NewNoteDialog
         isOpen={showNewNoteDialog}

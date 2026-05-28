@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Info, Link, ChartLine, Clock, FileText, X } from "@phosphor-icons/react"
+import { Info, Link, ChartLine, Clock, FileText, X, List } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { searchAPI, SearchResult } from "@/lib/api"
@@ -133,6 +133,30 @@ export default function RightSidebar() {
                 </div>
               )}
             </Section>
+
+            {/* 大纲 */}
+            {currentNote.content && (() => {
+              const headings = currentNote.content.split("\n").filter(l => /^#{1,3}\s/.test(l)).map(l => {
+                const level = l.match(/^(#+)/)?.[1].length || 1
+                const text = l.replace(/^#+\s*/, "")
+                return { level, text }
+              })
+              return headings.length > 0 ? (
+                <Section title={`大纲 (${headings.length})`} icon={<List className="w-3.5 h-3.5" />}>
+                  <div className="space-y-0.5">
+                    {headings.map((h, i) => (
+                      <div
+                        key={i}
+                        className="text-[12px] text-text-tertiary hover:text-accent-hover hover:bg-bg-hover rounded-md px-2 py-1 cursor-pointer transition-colors truncate"
+                        style={{ paddingLeft: `${(h.level - 1) * 12 + 8}px` }}
+                      >
+                        {h.text}
+                      </div>
+                    ))}
+                  </div>
+                </Section>
+              ) : null
+            })()}
 
             {/* 活动 */}
             <Section title="活动" icon={<Clock className="w-3.5 h-3.5" />}>
