@@ -14,7 +14,7 @@ import NewNoteDialog from "@/components/NewNoteDialog"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { motion, AnimatePresence } from "motion/react"
-import { X, List, TreeStructure, Sidebar } from "@phosphor-icons/react"
+import { X, List, TreeStructure } from "@phosphor-icons/react"
 import { useIsMobile } from "@/lib/useIsMobile"
 
 export default function Home() {
@@ -181,13 +181,3 @@ function MobileHeader({ onOpenNav, onOpenBrowser }: { onOpenNav: () => void; onO
   )
 }
 
-function EmptyState({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex-1 flex items-center justify-center bg-bg-base">
-      <div className="text-center">
-        <p className="text-lg font-medium text-text-secondary mb-1">{title}</p>
-        <p className="text-sm text-text-muted">{description}</p>
-      </div>
-    </div>
-  )
-}

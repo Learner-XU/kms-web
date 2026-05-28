@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Clock, GitCommit, X } from "@phosphor-icons/react"
 import { notesAPI } from "@/lib/api"
+import { formatRelativeTime } from "@/lib/utils"
 
 interface Commit {
   sha: string
@@ -58,7 +59,7 @@ export default function HistoryPanel({ notePath, onClose }: { notePath: string; 
                   <div className="flex items-center gap-2 mt-1 text-[10px] text-text-ghost">
                     <span>{commit.author.name}</span>
                     <span>·</span>
-                    <span>{formatDate(commit.created)}</span>
+                    <span>{formatRelativeTime(commit.created)}</span>
                   </div>
                   <span className="text-[10px] text-text-ghost font-mono">{commit.sha.substring(0, 7)}</span>
                 </div>
@@ -71,20 +72,3 @@ export default function HistoryPanel({ notePath, onClose }: { notePath: string; 
   )
 }
 
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr)
-    const now = new Date()
-    const diff = now.getTime() - d.getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return "刚刚"
-    if (mins < 60) return `${mins}分钟前`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours}小时前`
-    const days = Math.floor(hours / 24)
-    if (days < 7) return `${days}天前`
-    return d.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" })
-  } catch {
-    return dateStr
-  }
-}

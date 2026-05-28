@@ -2,19 +2,10 @@
 
 import { useState, useEffect } from "react"
 import {
-  FileText, Tag, Link, TrendUp, Clock,
-  BookOpen, Calendar, Archive, Lightbulb,
+  FileText, Tag, Link, TrendUp,
+  BookOpen, Calendar, Lightbulb,
 } from "@phosphor-icons/react"
-import { type SearchResult } from "@/lib/api"
-
-async function fetchStats<T>(endpoint: string): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("kms_token") : null
-  const res = await fetch(endpoint, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (!res.ok) throw new Error(`${res.status}`)
-  return res.json()
-}
+import { searchAPI, type SearchResult } from "@/lib/api"
 
 interface Stats {
   total_notes: number
@@ -46,11 +37,20 @@ const statusLabels: Record<string, string> = {
   archived: "已归档",
 }
 
-const statusColors: Record<string, string> = {
-  seed: "bg-gray-500/20 text-gray-400",
-  growing: "bg-amber-500/20 text-amber-400",
-  mature: "bg-emerald-500/20 text-emerald-400",
-  archived: "bg-slate-500/20 text-slate-400",
+const statusColorMap: Record<string, { bg: string; text: string }> = {
+  seed: { bg: "bg-gray-500/20", text: "text-gray-400" },
+  growing: { bg: "bg-amber-500/20", text: "text-amber-400" },
+  mature: { bg: "bg-emerald-500/20", text: "text-emerald-400" },
+  archived: { bg: "bg-slate-500/20", text: "text-slate-400" },
+}
+
+async function fetchStats<T>(endpoint: string): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("kms_token") : null
+  const res = await fetch(endpoint, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new Error(`${res.status}`)
+  return res.json()
 }
 
 export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string) => void }) {
@@ -87,10 +87,10 @@ export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={<FileText className="w-5 h-5" />} label="笔记总数" value={stats.total_notes} color="accent" />
-          <StatCard icon={<Tag className="w-5 h-5" />} label="标签数" value={stats.tag_count} color="amber" />
-          <StatCard icon={<Link className="w-5 h-5" />} label="链接数" value={stats.link_count} color="emerald" />
-          <StatCard icon={<TrendUp className="w-5 h-5" />} label="类型数" value={Object.keys(stats.by_type).length} color="violet" />
+          <StatCard icon={<FileText className="w-5 h-5" />} label="笔记总数" value={stats.total_notes} />
+          <StatCard icon={<Tag className="w-5 h-5" />} label="标签数" value={stats.tag_count} />
+          <StatCard icon={<Link className="w-5 h-5" />} label="链接数" value={stats.link_count} />
+          <StatCard icon={<TrendUp className="w-5 h-5" />} label="类型数" value={Object.keys(stats.by_type).length} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -121,9 +121,10 @@ export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string
             <div className="space-y-3">
               {Object.entries(stats.by_status).map(([status, count]) => {
                 const pct = stats.total_notes > 0 ? (count / stats.total_notes) * 100 : 0
+                const colors = statusColorMap[status] || { bg: "bg-bg-base", text: "text-text-ghost" }
                 return (
                   <div key={status} className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 text-[10px] rounded-full w-16 text-center ${statusColors[status] || "bg-bg-base text-text-ghost"}`}>
+                    <span className={`px-2 py-0.5 text-[10px] rounded-full w-16 text-center ${colors.bg} ${colors.text}`}>
                       {statusLabels[status] || status}
                     </span>
                     <div className="flex-1 h-2 bg-bg-base rounded-full overflow-hidden">
@@ -165,10 +166,10 @@ export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string
   )
 }
 
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="bg-bg-surface border border-border-subtle rounded-xl p-4">
-      <div className={`w-9 h-9 rounded-lg bg-${color}-subtle flex items-center justify-center mb-3 text-${color}`}>
+      <div className="w-9 h-9 rounded-lg bg-accent-subtle flex items-center justify-center mb-3 text-accent">
         {icon}
       </div>
       <div className="text-[22px] font-bold text-text-primary">{value}</div>

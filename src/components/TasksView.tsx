@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   Plus, X, Check, ChatCircle, Tag, Clock,
-  CircleDashed, CheckCircle, CaretDown, MagnifyingGlass,
+  CircleDashed, CheckCircle, CaretDown,
   ArrowClockwise,
 } from "@phosphor-icons/react"
 import { issuesAPI, type Issue, type IssueLabel } from "@/lib/api"
+import { formatRelativeTime } from "@/lib/utils"
 
 export default function TasksView() {
   const [issues, setIssues] = useState<Issue[]>([])
@@ -199,7 +200,7 @@ function IssueCard({ issue, onClick, onToggle }: { issue: Issue; onClick: () => 
           </div>
         )}
         <div className="flex items-center gap-3 text-[11px] text-text-ghost">
-          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDate(issue.created_at)}</span>
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatRelativeTime(issue.created_at)}</span>
           {issue.comments > 0 && <span className="flex items-center gap-1"><ChatCircle className="w-3 h-3" />{issue.comments}</span>}
         </div>
       </div>
@@ -276,8 +277,8 @@ function IssueDetailPanel({ issue, labels: allLabels, onClose, onToggle, onRefre
         )}
 
         <div className="flex items-center gap-4 text-[11px] text-text-ghost mb-6">
-          <span>创建于 {formatDate(issue.created_at)}</span>
-          <span>更新于 {formatDate(issue.updated_at)}</span>
+          <span>创建于 {formatRelativeTime(issue.created_at)}</span>
+          <span>更新于 {formatRelativeTime(issue.updated_at)}</span>
         </div>
 
         {/* Comments */}
@@ -291,7 +292,7 @@ function IssueDetailPanel({ issue, labels: allLabels, onClose, onToggle, onRefre
                 <div key={c.id} className="bg-bg-base rounded-lg p-3 border border-border-subtle">
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-[12px] font-medium text-accent">{c.user.login}</span>
-                    <span className="text-[10px] text-text-ghost">{formatDate(c.created_at)}</span>
+                    <span className="text-[10px] text-text-ghost">{formatRelativeTime(c.created_at)}</span>
                   </div>
                   <p className="text-[12px] text-text-secondary whitespace-pre-wrap">{c.body}</p>
                 </div>
@@ -405,21 +406,3 @@ function CreateIssueDialog({ labels: allLabels, onClose, onCreate }: {
 }
 
 /* ── Helpers ── */
-
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr)
-    const now = new Date()
-    const diff = now.getTime() - d.getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return "刚刚"
-    if (mins < 60) return `${mins} 分钟前`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours} 小时前`
-    const days = Math.floor(hours / 24)
-    if (days < 7) return `${days} 天前`
-    return d.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" })
-  } catch {
-    return dateStr
-  }
-}
