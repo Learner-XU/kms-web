@@ -58,9 +58,9 @@ export default function PublishedNotePage() {
       <div className="max-w-[720px] mx-auto px-6 py-10">
         {/* Navigation */}
         <div className="flex items-center gap-3 mb-8">
-          <a href="/" className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
+          <button onClick={() => window.location.href = "/"} className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
             <Brain weight="fill" className="w-4 h-4 text-accent" />
-          </a>
+          </button>
           <button
             onClick={() => router.push("/p")}
             className="flex items-center gap-1.5 text-[12px] text-text-ghost hover:text-accent transition-colors"
