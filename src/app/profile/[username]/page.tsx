@@ -1,78 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import {
   PencilSimple, FloppyDisk, X, Plus, Trash,
   MapPin, Envelope, Phone, Globe, GithubLogo, LinkedinLogo,
   Download, Certificate, Lightning, ShoppingCart, ChartBar,
   User, Briefcase, Code, GraduationCap, Trophy,
-  TwitterLogo,
+  TwitterLogo, Spinner,
 } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
+import { profilesAPI, ProfileData } from "@/lib/api"
 
 /* ── Types ── */
 
-interface Profile {
-  name: string
-  title: string
-  bio: string
-  avatar: string
-  location: string
-  email: string
-  phone: string
-  website: string
-  github: string
-  linkedin: string
-  twitter: string
-  skills: SkillCategory[]
-  experience: Experience[]
-  projects: Project[]
-  education: Education[]
-  certificates: string[]
-}
+type Profile = Omit<ProfileData, "username" | "updated_at">
 
-interface SkillCategory {
-  category: string
-  items: { name: string; level: number }[]
-}
-
-interface Experience {
-  company: string
-  role: string
-  period: string
-  type: string
-  duration: string
-  description: string
-}
-
-interface Project {
-  name: string
-  type: string
-  period: string
-  description: string
-  tech: string[]
-  icon: string
-}
-
-interface Education {
-  school: string
-  degree: string
-  period: string
-}
-
-/* ── Storage ── */
-
-const STORAGE_KEY = "kms_profile"
-
-function loadProfile(): Profile {
-  if (typeof window === "undefined") return defaultProfile()
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return { ...defaultProfile(), ...JSON.parse(saved) }
-  } catch {}
-  return defaultProfile()
-}
+/* ── Defaults ── */
 
 function defaultProfile(): Profile {
   return {
@@ -103,24 +47,56 @@ const projectIcons: Record<string, typeof Lightning> = {
 
 /* ── Main Page ── */
 
-export default function ProfilePage() {
+export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = use(params)
   const user = useKMSStore(useShallow((s) => s.user))
   const [profile, setProfile] = useState<Profile>(defaultProfile)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Profile>(defaultProfile)
   const [activeSection, setActiveSection] = useState("hero")
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const canEdit = user?.username === username
 
   useEffect(() => {
-    const p = loadProfile()
-    if (!p.name && user) p.name = user.nickname || user.username
-    setProfile(p)
-    setDraft(p)
-  }, [user])
+    let cancelled = false
+    async function fetchProfile() {
+      setLoading(true)
+      try {
+        const data = await profilesAPI.get(username)
+        if (cancelled) return
+        const { username: _, updated_at: __, ...profileFields } = data
+        const merged = { ...defaultProfile(), ...profileFields }
+        if (!merged.name && user?.username === username) merged.name = user.nickname || user.username
+        setProfile(merged)
+        setDraft(merged)
+      } catch (err: any) {
+        if (cancelled) return
+        // 404 or other error → use default profile
+        const fallback = defaultProfile()
+        if (user?.username === username) fallback.name = user.nickname || user.username
+        setProfile(fallback)
+        setDraft(fallback)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchProfile()
+    return () => { cancelled = true }
+  }, [username, user])
 
-  const save = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
-    setProfile(draft)
-    setEditing(false)
+  const save = async () => {
+    setSaving(true)
+    try {
+      await profilesAPI.update(username, draft)
+      setProfile(draft)
+      setEditing(false)
+    } catch (err) {
+      console.error("Failed to save profile:", err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const cancel = () => {
@@ -135,20 +111,28 @@ export default function ProfilePage() {
 
   const p = editing ? draft : profile
 
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-bg-base">
+        <Spinner className="w-8 h-8 text-accent animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg-base">
       {/* ── Left Sidebar ── */}
       <aside className="w-72 min-w-72 bg-bg-surface border-r border-border-default flex flex-col h-screen overflow-y-auto shrink-0">
-        {/* Edit controls — only show when logged in */}
-        {user && (
+        {/* Edit controls — only show when viewing own profile */}
+        {canEdit && (
           <div className="flex items-center justify-end px-5 pt-4 pb-2">
             {editing ? (
               <div className="flex items-center gap-1">
                 <button onClick={cancel} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="取消">
                   <X className="w-4 h-4" />
                 </button>
-                <button onClick={save} className="p-1.5 rounded-md text-accent hover:bg-accent-subtle transition-colors" title="保存">
-                  <FloppyDisk className="w-4 h-4" />
+                <button onClick={save} disabled={saving} className="p-1.5 rounded-md text-accent hover:bg-accent-subtle transition-colors disabled:opacity-50" title="保存">
+                  {saving ? <Spinner className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" />}
                 </button>
               </div>
             ) : (

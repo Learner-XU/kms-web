@@ -290,3 +290,34 @@ export const authAPI = {
       body: JSON.stringify({ refresh_token: refreshToken }),
     }),
 };
+
+export interface ProfileData {
+  username: string;
+  name: string;
+  title: string;
+  bio: string;
+  avatar: string;
+  location: string;
+  email: string;
+  phone: string;
+  website: string;
+  github: string;
+  linkedin: string;
+  twitter: string;
+  skills: { category: string; items: { name: string; level: number }[] }[];
+  experience: { company: string; role: string; period: string; type: string; duration: string; description: string }[];
+  projects: { name: string; type: string; period: string; description: string; tech: string[]; icon: string }[];
+  education: { school: string; degree: string; period: string }[];
+  certificates: string[];
+  updated_at?: string;
+}
+
+export const profilesAPI = {
+  get: (username: string) => fetchAPI<ProfileData>(`/api/profiles/${username}`),
+  update: (username: string, data: Partial<ProfileData>) =>
+    fetchAPI<ProfileData>(`/api/profiles/${username}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  list: () => fetchAPI<{ profiles: ProfileData[] }>("/api/profiles"),
+};
