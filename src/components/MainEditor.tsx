@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock } from "@phosphor-icons/react"
+import { useState, useCallback, useEffect } from "react"
+import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock, Globe, Link } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { formatDate } from "@/lib/utils"
+import { publishedAPI } from "@/lib/api"
 
 export default function MainEditor() {
   const { currentNote, searchResults, searchQuery } = useKMSStore(
@@ -16,6 +17,20 @@ export default function MainEditor() {
   const [editContent, setEditContent] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null)
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [publishSlug, setPublishSlug] = useState("")
+  const [publishing, setPublishing] = useState(false)
+
+  // Check publish status when note changes
+  useEffect(() => {
+    if (!currentNote) { setPublishedSlug(null); return }
+    let cancelled = false
+    publishedAPI.check(currentNote.path).then((res) => {
+      if (!cancelled) setPublishedSlug(res?.slug || null)
+    })
+    return () => { cancelled = true }
+  }, [currentNote?.path])
 
   // All hooks must be declared before any conditional returns (Rules of Hooks)
   const handleSave = useCallback(async () => {
@@ -36,6 +51,36 @@ export default function MainEditor() {
       setIsEditing(true)
     }
   }, [currentNote])
+
+  const openPublish = useCallback(() => {
+    if (!currentNote) return
+    // Default slug: note ID (first 8 chars) or existing slug
+    setPublishSlug(publishedSlug || currentNote.id.slice(0, 8))
+    setShowPublishModal(true)
+  }, [currentNote, publishedSlug])
+
+  const handlePublish = async () => {
+    if (!currentNote || !publishSlug.trim()) return
+    setPublishing(true)
+    try {
+      const res = await publishedAPI.publish(currentNote.path, publishSlug.trim())
+      setPublishedSlug(res.slug)
+      setShowPublishModal(false)
+    } catch (e) {
+      console.error("Publish failed:", e)
+    }
+    setPublishing(false)
+  }
+
+  const handleUnpublish = async () => {
+    if (!currentNote) return
+    try {
+      await publishedAPI.unpublish(currentNote.path)
+      setPublishedSlug(null)
+    } catch (e) {
+      console.error("Unpublish failed:", e)
+    }
+  }
 
   // Search results view
   if (searchQuery && searchResults.length > 0 && !currentNote) {
@@ -88,6 +133,7 @@ export default function MainEditor() {
   }
 
   return (
+    <>
     <div className="flex-1 flex flex-col h-screen bg-bg-base overflow-hidden">
       {/* Tab Bar */}
       <div className="flex items-center gap-1 px-3 h-11 border-b border-border-subtle bg-bg-surface shrink-0">
@@ -131,6 +177,34 @@ export default function MainEditor() {
           >
             <Clock className="w-4 h-4" />
           </button>
+          {publishedSlug ? (
+            <div className="flex items-center gap-1">
+              <a
+                href={`/p/${publishedSlug}`}
+                target="_blank"
+                rel="noopener"
+                className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
+                title="已发布 — 查看公开页"
+              >
+                <Globe className="w-4 h-4" />
+              </a>
+              <button
+                onClick={handleUnpublish}
+                className="p-1.5 text-text-ghost hover:text-danger transition-colors"
+                title="取消发布"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={openPublish}
+              className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
+              title="发布笔记"
+            >
+              <Globe className="w-4 h-4" />
+            </button>
+          )}
           <button className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors">
             <DotsThree className="w-4 h-4" />
           </button>
@@ -198,5 +272,38 @@ export default function MainEditor() {
         </div>
       </div>
     </div>
+    {/* Publish Modal */}
+    {showPublishModal && (
+      <>
+        <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setShowPublishModal(false)} />
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[440px] bg-bg-surface border border-border-default rounded-2xl shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
+            <h3 className="text-[14px] font-semibold text-text-primary">发布笔记</h3>
+            <button onClick={() => setShowPublishModal(false)} className="p-1 text-text-ghost hover:text-text-secondary"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="p-5 space-y-4">
+            <div>
+              <label className="text-[11px] text-text-ghost mb-1 block">链接标识 (slug)</label>
+              <input
+                value={publishSlug}
+                onChange={(e) => setPublishSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                className="w-full px-3 py-2 text-[13px] bg-bg-base border border-border-default rounded-lg outline-none focus:border-accent text-text-primary font-mono"
+                placeholder="my-note"
+              />
+              <p className="text-[11px] text-text-ghost mt-1.5">
+                公开链接: <span className="text-accent font-mono">/p/{publishSlug || '...'}</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border-subtle">
+            <button onClick={() => setShowPublishModal(false)} className="px-4 py-1.5 text-[12px] text-text-ghost border border-border-default rounded-lg hover:bg-bg-hover transition-colors">取消</button>
+            <button onClick={handlePublish} disabled={!publishSlug.trim() || publishing} className="px-4 py-1.5 text-[12px] font-medium bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              {publishing ? "发布中..." : "确认发布"}
+            </button>
+          </div>
+        </div>
+      </>
+    )}
+    </>
   )
 }

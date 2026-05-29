@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useKMSStore } from "@/lib/store"
 
 // Paths accessible without login (but won't redirect logged-in users away)
-const PUBLIC_VIEW_PATHS = ["/profile/"]
+const PUBLIC_VIEW_PATHS = ["/profile/", "/p"]
 // Paths only for guests — logged-in users get redirected to /
 const GUEST_ONLY_PATHS = ["/login", "/register"]
 
