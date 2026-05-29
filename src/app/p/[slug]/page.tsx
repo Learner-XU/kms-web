@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, User, CalendarBlank, Tag, Clock } from "@phosphor-icons/react"
+import { ArrowLeft, User, CalendarBlank, Tag, Clock, Brain } from "@phosphor-icons/react"
 import { publishedAPI, type PublishedDetail } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
 
@@ -56,14 +56,19 @@ export default function PublishedNotePage() {
   return (
     <div className="flex-1 overflow-y-auto bg-bg-base min-h-screen">
       <div className="max-w-[720px] mx-auto px-6 py-10">
-        {/* Back link */}
-        <button
-          onClick={() => router.push("/p")}
-          className="flex items-center gap-1.5 text-[12px] text-text-ghost hover:text-accent transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          返回笔记列表
-        </button>
+        {/* Navigation */}
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => router.push("/")} className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
+            <Brain weight="fill" className="w-4 h-4 text-accent" />
+          </button>
+          <button
+            onClick={() => router.push("/p")}
+            className="flex items-center gap-1.5 text-[12px] text-text-ghost hover:text-accent transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            返回笔记列表
+          </button>
+        </div>
 
         {/* Title */}
         <h1 className="text-[24px] font-bold text-text-primary leading-tight">

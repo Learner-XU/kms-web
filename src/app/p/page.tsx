@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { FileText, Tag, User, CalendarBlank, ArrowRight } from "@phosphor-icons/react"
+import { FileText, Tag, User, CalendarBlank, ArrowRight, Brain } from "@phosphor-icons/react"
 import { publishedAPI, type PublishedNote } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
 
@@ -39,10 +39,15 @@ export default function PublishedNotesPage() {
       <div className="max-w-[860px] mx-auto px-6 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-[22px] font-bold text-text-primary flex items-center gap-2.5">
-            <FileText className="w-6 h-6 text-accent" />
-            发布笔记
-          </h1>
+          <div className="flex items-center gap-3 mb-3">
+            <button onClick={() => router.push("/")} className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
+              <Brain weight="fill" className="w-4 h-4 text-accent" />
+            </button>
+            <h1 className="text-[22px] font-bold text-text-primary flex items-center gap-2.5">
+              <FileText className="w-6 h-6 text-accent" />
+              发布笔记
+            </h1>
+          </div>
           <p className="text-[13px] text-text-ghost mt-1.5">
             {total > 0 ? `共 ${total} 篇公开笔记` : "暂无已发布的笔记"}
           </p>
