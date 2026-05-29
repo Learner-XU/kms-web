@@ -139,23 +139,25 @@ export default function ProfilePage() {
     <div className="flex h-screen w-screen overflow-hidden bg-bg-base">
       {/* ── Left Sidebar ── */}
       <aside className="w-72 min-w-72 bg-bg-surface border-r border-border-default flex flex-col h-screen overflow-y-auto shrink-0">
-        {/* Edit controls */}
-        <div className="flex items-center justify-end px-5 pt-4 pb-2">
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <button onClick={cancel} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="取消">
-                <X className="w-4 h-4" />
+        {/* Edit controls — only show when logged in */}
+        {user && (
+          <div className="flex items-center justify-end px-5 pt-4 pb-2">
+            {editing ? (
+              <div className="flex items-center gap-1">
+                <button onClick={cancel} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="取消">
+                  <X className="w-4 h-4" />
+                </button>
+                <button onClick={save} className="p-1.5 rounded-md text-accent hover:bg-accent-subtle transition-colors" title="保存">
+                  <FloppyDisk className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setEditing(true)} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="编辑">
+                <PencilSimple className="w-4 h-4" />
               </button>
-              <button onClick={save} className="p-1.5 rounded-md text-accent hover:bg-accent-subtle transition-colors" title="保存">
-                <FloppyDisk className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setEditing(true)} className="p-1.5 rounded-md text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors" title="编辑">
-              <PencilSimple className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Avatar */}
         <div className="flex flex-col items-center px-5 py-4">
