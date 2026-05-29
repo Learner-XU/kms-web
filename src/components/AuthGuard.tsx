@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useKMSStore } from "@/lib/store"
 
@@ -17,33 +17,37 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const authLoading = useKMSStore((s) => s.authLoading)
   const checkAuth = useKMSStore((s) => s.checkAuth)
 
+  const isPublic = useMemo(() => {
+    if (pathname === "/") return true
+    return PUBLIC_VIEW_PATHS.some(p => pathname.startsWith(p))
+  }, [pathname])
+
+  const isGuestOnly = useMemo(() => {
+    return GUEST_ONLY_PATHS.some(p => pathname.startsWith(p))
+  }, [pathname])
+
   useEffect(() => {
     // Skip auth check for public pages — saves ~100-200ms
-    const isHomepage = pathname === "/"
-    const isPublicView = isHomepage || PUBLIC_VIEW_PATHS.some(p => pathname.startsWith(p))
-    const isGuestOnly = GUEST_ONLY_PATHS.some(p => pathname.startsWith(p))
-    if (!isPublicView && !isGuestOnly) {
+    if (!isPublic && !isGuestOnly) {
       checkAuth()
     }
-  }, [checkAuth, pathname])
+  }, [checkAuth, isPublic, isGuestOnly])
 
   useEffect(() => {
     if (authLoading) return
-    const isHomepage = pathname === "/"
-    const isPublicView = isHomepage || PUBLIC_VIEW_PATHS.some(p => pathname.startsWith(p))
-    const isGuestOnly = GUEST_ONLY_PATHS.some(p => pathname.startsWith(p))
     const isApp = pathname.startsWith("/app")
 
-    if (!user && !isPublicView && !isGuestOnly) {
+    if (!user && !isPublic && !isGuestOnly) {
       router.push("/login")
     } else if (user && isGuestOnly) {
       router.push("/app")
     } else if (!user && isApp) {
       router.push("/login")
     }
-  }, [user, authLoading, pathname, router])
+  }, [user, authLoading, pathname, router, isPublic, isGuestOnly])
 
-  if (authLoading) {
+  // Public pages render immediately — no auth wait
+  if (authLoading && !isPublic) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary">
         <div className="text-text-muted text-sm">加载中...</div>
