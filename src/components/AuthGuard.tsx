@@ -18,8 +18,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const checkAuth = useKMSStore((s) => s.checkAuth)
 
   useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
+    // Skip auth check for public pages — saves ~100-200ms
+    const isHomepage = pathname === "/"
+    const isPublicView = isHomepage || PUBLIC_VIEW_PATHS.some(p => pathname.startsWith(p))
+    const isGuestOnly = GUEST_ONLY_PATHS.some(p => pathname.startsWith(p))
+    if (!isPublicView && !isGuestOnly) {
+      checkAuth()
+    }
+  }, [checkAuth, pathname])
 
   useEffect(() => {
     if (authLoading) return

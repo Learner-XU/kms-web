@@ -202,13 +202,14 @@ export default function GraphView() {
       {/* Zoom Controls */}
       <div className="absolute bottom-4 right-4 flex flex-col gap-0.5">
         {[
-          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomIn?.(), icon: Plus },
-          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomOut?.(), icon: Minus },
-          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__fit?.(), icon: ArrowsOut },
-        ].map(({ handler, icon: Icon }, i) => (
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomIn?.(), icon: Plus, label: "放大" },
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__zoomOut?.(), icon: Minus, label: "缩小" },
+          { handler: () => (svgRef.current as unknown as ZoomableSVG)?.__fit?.(), icon: ArrowsOut, label: "适应" },
+        ].map(({ handler, icon: Icon, label }, i) => (
           <button
             key={i}
             onClick={handler}
+            aria-label={label}
             className="p-2 bg-bg-elevated/90 border border-border-default rounded-md hover:bg-bg-hover backdrop-blur-sm transition-colors"
           >
             <Icon className="w-3.5 h-3.5 text-text-tertiary" />

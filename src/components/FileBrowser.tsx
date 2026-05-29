@@ -299,7 +299,7 @@ export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
         <button
           onClick={onToggle}
           className="w-7 h-7 rounded-md flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-          title="展开文件列表 (⌘B)"
+          title="展开文件列表 (⌘B)" aria-label="展开文件列表"
         >
           <Sidebar className="w-4 h-4" />
         </button>
@@ -307,14 +307,14 @@ export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
         <button
           onClick={() => startCreate("file")}
           className="w-7 h-7 rounded-md flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-          title="新建笔记"
+          title="新建笔记" aria-label="新建笔记"
         >
           <Note className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => startCreate("folder")}
           className="w-7 h-7 rounded-md flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-          title="新建文件夹"
+          title="新建文件夹" aria-label="新建文件夹"
         >
           <FolderPlus className="w-3.5 h-3.5" />
         </button>
@@ -341,21 +341,21 @@ export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
           <button
             onClick={() => startCreate("file")}
             className="w-6 h-6 rounded flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-            title="新建笔记"
+            title="新建笔记" aria-label="新建笔记"
           >
             <Note className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => startCreate("folder")}
             className="w-6 h-6 rounded flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-            title="新建文件夹"
+            title="新建文件夹" aria-label="新建文件夹"
           >
             <FolderPlus className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onToggle}
             className="w-6 h-6 rounded flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-            title="收起 (⌘B)"
+            title="收起 (⌘B)" aria-label="收起文件列表"
           >
             <Sidebar className="w-3.5 h-3.5" />
           </button>

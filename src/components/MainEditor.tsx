@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock, Globe } from "@phosphor-icons/react"
+import { Lightbulb, X, FloppyDisk, PencilSimple, FileText, Info, Clock, Globe } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { formatDate } from "@/lib/utils"
@@ -169,14 +169,14 @@ export default function MainEditor() {
           <button
             onClick={() => setShowRightSidebar(true)}
             className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
-            title="笔记信息"
+            title="笔记信息" aria-label="笔记信息"
           >
             <Info className="w-4 h-4" />
           </button>
           <button
             onClick={() => useKMSStore.getState().setShowHistory(true)}
             className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
-            title="版本历史"
+            title="版本历史" aria-label="版本历史"
           >
             <Clock className="w-4 h-4" />
           </button>
@@ -187,7 +187,7 @@ export default function MainEditor() {
                 target="_blank"
                 rel="noopener"
                 className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
-                title="已发布 — 查看公开页"
+                title="已发布 — 查看公开页" aria-label="已发布"
               >
                 <Globe className="w-4 h-4" />
               </a>
@@ -195,7 +195,7 @@ export default function MainEditor() {
                 onClick={handleUnpublish}
                 disabled={unpublishing}
                 className="p-1.5 text-text-ghost hover:text-danger transition-colors disabled:opacity-50"
-                title="取消发布"
+                title="取消发布" aria-label="取消发布"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -204,14 +204,12 @@ export default function MainEditor() {
             <button
               onClick={openPublish}
               className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors"
-              title="发布笔记"
+              title="发布笔记" aria-label="发布笔记"
             >
               <Globe className="w-4 h-4" />
             </button>
           )}
-          <button className="p-1.5 text-text-ghost hover:text-text-tertiary transition-colors">
-            <DotsThree className="w-4 h-4" />
-          </button>
+
         </div>
       </div>
 

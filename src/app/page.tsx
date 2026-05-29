@@ -8,12 +8,16 @@ import { formatDate } from "@/lib/utils"
 export default function HomePage() {
   const [notes, setNotes] = useState<PublishedNote[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     publishedAPI
       .list(50, 0)
       .then((data) => setNotes(data.notes || []))
-      .catch((e) => console.error("Failed to load published notes:", e))
+      .catch((e) => {
+        console.error("Failed to load published notes:", e)
+        setError("加载失败，请稍后重试")
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -55,6 +59,10 @@ export default function HomePage() {
           <div className="flex items-center gap-3 py-20 justify-center">
             <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             <span className="text-[13px] text-text-ghost">加载中...</span>
+          </div>
+        ) : error ? (
+          <div className="py-20 text-center">
+            <p className="text-[15px] text-text-ghost">{error}</p>
           </div>
         ) : notes.length === 0 ? (
           <div className="py-20 text-center">

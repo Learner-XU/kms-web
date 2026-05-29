@@ -159,10 +159,10 @@ export default function Home() {
 function MobileHeader({ onOpenNav, onOpenBrowser }: { onOpenNav: () => void; onOpenBrowser: () => void }) {
   return (
     <div className="flex items-center gap-2 px-3 h-11 bg-bg-surface border-b border-border-subtle shrink-0">
-      <button onClick={onOpenNav} className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
+      <button onClick={onOpenNav} aria-label="打开导航" className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
         <List className="w-5 h-5" />
       </button>
-      <button onClick={onOpenBrowser} className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
+      <button onClick={onOpenBrowser} aria-label="打开文件浏览器" className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
         <TreeStructure className="w-5 h-5" />
       </button>
       <div className="flex-1" />

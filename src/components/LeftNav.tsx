@@ -67,11 +67,11 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
         <button
           onClick={onToggle}
           className="w-8 h-8 rounded-md flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"
-          title="展开侧栏 (⌘\\)"
+          title="展开侧栏 (⌘\\)" aria-label="展开侧栏"
         >
           <SidebarSimple className="w-4 h-4" />
         </button>
-        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center mt-1 cursor-pointer hover:bg-accent-subtle transition-colors" title="首页">
+        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center mt-1 cursor-pointer hover:bg-accent-subtle transition-colors" title="首页" aria-label="首页">
           <Brain weight="fill" className="w-4 h-4 text-accent" />
         </button>
         <div className="w-6 border-t border-border-subtle my-1" />
@@ -105,7 +105,7 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
           <Brain weight="fill" className="w-4 h-4 text-accent" />
         </button>
         <span className="text-text-primary font-semibold text-[13px] tracking-tight">Second Brain</span>
-        <button onClick={onToggle} className="ml-auto text-text-ghost hover:text-text-tertiary transition-colors" title="收起侧栏 (⌘\\)">
+        <button onClick={onToggle} className="ml-auto text-text-ghost hover:text-text-tertiary transition-colors" title="收起侧栏 (⌘\\)" aria-label="收起侧栏">
           <SidebarSimple className="w-4 h-4" />
         </button>
       </div>
