@@ -342,14 +342,14 @@ export const publishedAPI = {
     fetchAPI<{ notes: PublishedNote[]; total: number }>(`/api/published?limit=${limit}&offset=${offset}`),
   get: (slug: string) => fetchAPI<PublishedDetail>(`/api/published/${slug}`),
   publish: (notePath: string, slug: string) =>
-    fetchAPI<{ slug: string; url: string }>(`/api/publish/${notePath}`, {
+    fetchAPI<{ slug: string; url: string }>(`/api/publish/${sanitizePath(notePath)}`, {
       method: "POST",
       body: JSON.stringify({ slug }),
     }),
   unpublish: (notePath: string) =>
-    fetchAPI<{ status: string }>(`/api/publish/${notePath}`, {
+    fetchAPI<{ status: string }>(`/api/publish/${sanitizePath(notePath)}`, {
       method: "DELETE",
     }),
   check: (notePath: string) =>
-    fetchAPI<{ slug: string } | null>(`/api/publish/${notePath}`).catch(() => null),
+    fetchAPI<{ slug: string } | null>(`/api/publish/${sanitizePath(notePath)}`).catch(() => null),
 };

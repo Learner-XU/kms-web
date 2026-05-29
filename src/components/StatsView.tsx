@@ -5,7 +5,7 @@ import {
   FileText, Tag, Link, TrendUp,
   BookOpen, Calendar, Lightbulb,
 } from "@phosphor-icons/react"
-import { searchAPI, fetchAPI, type SearchResult } from "@/lib/api"
+import { fetchAPI, type SearchResult } from "@/lib/api"
 
 interface Stats {
   total_notes: number
