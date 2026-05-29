@@ -71,9 +71,9 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
         >
           <SidebarSimple className="w-4 h-4" />
         </button>
-        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center mt-1 cursor-pointer hover:bg-accent-subtle transition-colors" title="首页" aria-label="首页">
+        <a href="/" className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center mt-1 cursor-pointer hover:bg-accent-subtle transition-colors" title="首页" aria-label="首页">
           <Brain weight="fill" className="w-4 h-4 text-accent" />
-        </button>
+        </a>
         <div className="w-6 border-t border-border-subtle my-1" />
         {workspaces.map((w) => {
           const isActive = activeView === w.view
@@ -101,9 +101,9 @@ export default function LeftNav({ collapsed, onToggle }: LeftNavProps) {
     <div className="w-60 min-w-60 bg-bg-surface border-r border-border-default flex flex-col h-screen overflow-hidden">
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border-subtle shrink-0">
-        <button onClick={() => setActiveView("notes")} className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center cursor-pointer hover:bg-accent-subtle transition-colors">
+        <a href="/" className="w-7 h-7 rounded-md bg-accent-muted flex items-center justify-center cursor-pointer hover:bg-accent-subtle transition-colors">
           <Brain weight="fill" className="w-4 h-4 text-accent" />
-        </button>
+        </a>
         <span className="text-text-primary font-semibold text-[13px] tracking-tight">Second Brain</span>
         <button onClick={onToggle} className="ml-auto text-text-ghost hover:text-text-tertiary transition-colors" title="收起侧栏 (⌘\\)" aria-label="收起侧栏">
           <SidebarSimple className="w-4 h-4" />
