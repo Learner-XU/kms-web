@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock, Globe, Link } from "@phosphor-icons/react"
+import { Lightbulb, X, DotsThree, FloppyDisk, PencilSimple, FileText, Info, Clock, Globe } from "@phosphor-icons/react"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { formatDate } from "@/lib/utils"
@@ -21,6 +21,7 @@ export default function MainEditor() {
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [publishSlug, setPublishSlug] = useState("")
   const [publishing, setPublishing] = useState(false)
+  const [unpublishing, setUnpublishing] = useState(false)
 
   // Check publish status when note changes
   useEffect(() => {
@@ -74,12 +75,14 @@ export default function MainEditor() {
 
   const handleUnpublish = async () => {
     if (!currentNote) return
+    setUnpublishing(true)
     try {
       await publishedAPI.unpublish(currentNote.path)
       setPublishedSlug(null)
     } catch (e) {
       console.error("Unpublish failed:", e)
     }
+    setUnpublishing(false)
   }
 
   // Search results view
@@ -190,7 +193,8 @@ export default function MainEditor() {
               </a>
               <button
                 onClick={handleUnpublish}
-                className="p-1.5 text-text-ghost hover:text-danger transition-colors"
+                disabled={unpublishing}
+                className="p-1.5 text-text-ghost hover:text-danger transition-colors disabled:opacity-50"
                 title="取消发布"
               >
                 <X className="w-3.5 h-3.5" />

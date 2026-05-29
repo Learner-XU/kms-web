@@ -5,7 +5,7 @@ import {
   FileText, Tag, Link, TrendUp,
   BookOpen, Calendar, Lightbulb,
 } from "@phosphor-icons/react"
-import { searchAPI, type SearchResult } from "@/lib/api"
+import { searchAPI, fetchAPI, type SearchResult } from "@/lib/api"
 
 interface Stats {
   total_notes: number
@@ -44,21 +44,12 @@ const statusColorMap: Record<string, { bg: string; text: string }> = {
   archived: { bg: "bg-slate-500/20", text: "text-slate-400" },
 }
 
-async function fetchStats<T>(endpoint: string): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("kms_token") : null
-  const res = await fetch(endpoint, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (!res.ok) throw new Error(`${res.status}`)
-  return res.json()
-}
-
 export default function StatsView({ onNoteClick }: { onNoteClick?: (path: string) => void }) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats<Stats>("/api/stats")
+    fetchAPI<Stats>("/api/stats")
       .then(setStats)
       .catch((e) => { console.error("Failed to load stats:", e) })
       .finally(() => setLoading(false))

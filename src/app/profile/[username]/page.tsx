@@ -99,7 +99,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
     }
     fetchProfile()
     return () => { cancelled = true }
-  }, [username, user])
+  }, [username, user?.username])
 
   const save = async () => {
     setSaving(true)
@@ -194,9 +194,9 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
         {/* Social */}
         <div className="flex items-center justify-center gap-3 px-5 pb-4">
-          {p.github && <a href={`https://github.com/${p.github}`} target="_blank" rel="noopener" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><GithubLogo className="w-4 h-4" /></a>}
-          {p.linkedin && <a href={`https://linkedin.com/in/${p.linkedin}`} target="_blank" rel="noopener" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><LinkedinLogo className="w-4 h-4" /></a>}
-          {p.twitter && <a href={`https://x.com/${p.twitter}`} target="_blank" rel="noopener" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><TwitterLogo className="w-4 h-4" /></a>}
+          {p.github && <a href={`https://github.com/${p.github}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><GithubLogo className="w-4 h-4" /></a>}
+          {p.linkedin && <a href={`https://linkedin.com/in/${p.linkedin}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><LinkedinLogo className="w-4 h-4" /></a>}
+          {p.twitter && <a href={`https://x.com/${p.twitter}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-bg-base flex items-center justify-center text-text-ghost hover:text-text-secondary hover:bg-bg-hover transition-colors"><TwitterLogo className="w-4 h-4" /></a>}
         </div>
 
         {/* Nav */}

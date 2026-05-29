@@ -19,10 +19,12 @@ export default function HistoryPanel({ notePath, onClose }: { notePath: string; 
   useEffect(() => {
     if (!notePath) return
     setLoading(true)
+    let cancelled = false
     notesAPI.history(notePath)
-      .then(res => setCommits(res.commits || []))
-      .catch(() => setCommits([]))
-      .finally(() => setLoading(false))
+      .then(res => { if (!cancelled) setCommits(res.commits || []) })
+      .catch(e => { if (!cancelled) { console.error(e); setCommits([]) } })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [notePath])
 
   return (

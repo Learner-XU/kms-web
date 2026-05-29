@@ -10,7 +10,6 @@ import DiaryView from "@/components/DiaryView"
 import TasksView from "@/components/TasksView"
 import HistoryPanel from "@/components/HistoryPanel"
 import StatsView from "@/components/StatsView"
-import NewNoteDialog from "@/components/NewNoteDialog"
 import { useKMSStore } from "@/lib/store"
 import { useShallow } from "zustand/react/shallow"
 import { motion, AnimatePresence } from "motion/react"
@@ -18,10 +17,9 @@ import { X, List, TreeStructure } from "@phosphor-icons/react"
 import { useIsMobile } from "@/lib/useIsMobile"
 
 export default function Home() {
-  const { activeView, createNote, error, clearError, showNewNoteDialog, setShowNewNoteDialog, showHistory, setShowHistory, currentNote } = useKMSStore(
+  const { activeView, error, clearError, showHistory, setShowHistory, currentNote } = useKMSStore(
     useShallow((s) => ({
-      activeView: s.activeView, createNote: s.createNote, error: s.error, clearError: s.clearError,
-      showNewNoteDialog: s.showNewNoteDialog, setShowNewNoteDialog: s.setShowNewNoteDialog,
+      activeView: s.activeView, error: s.error, clearError: s.clearError,
       showHistory: s.showHistory, setShowHistory: s.setShowHistory,
       currentNote: s.currentNote,
     }))
@@ -54,10 +52,6 @@ export default function Home() {
   // Don't render layout until we know the screen size (avoids flash)
   if (!ready) {
     return <div className="h-screen w-screen bg-bg-base" />
-  }
-
-  const handleCreateNote = async (title: string, path: string, type: string) => {
-    await createNote(title, path, type)
   }
 
   return (
@@ -158,11 +152,6 @@ export default function Home() {
       {!isMobile && activeView === "tasks" && <TasksView />}
       {!isMobile && activeView === "ai" && <StatsView onNoteClick={(path) => { useKMSStore.getState().loadNote(path); useKMSStore.getState().setActiveView("notes") }} />}
 
-      <NewNoteDialog
-        isOpen={showNewNoteDialog}
-        onClose={() => setShowNewNoteDialog(false)}
-        onSubmit={handleCreateNote}
-      />
     </div>
   )
 }

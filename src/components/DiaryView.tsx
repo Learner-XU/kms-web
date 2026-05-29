@@ -62,13 +62,11 @@ export default function DiaryView() {
       await createNote(title, path, "daily")
       await loadNotes()
       // Load the newly created note
-      setTimeout(() => {
-        const newNote = useKMSStore.getState().notes.find(n => n.path.includes(dateStr))
-        if (newNote) {
-          loadNote(newNote.path)
-          setActiveView("notes")
-        }
-      }, 500)
+      const newNote = useKMSStore.getState().notes.find(n => n.path.includes(dateStr))
+      if (newNote) {
+        loadNote(newNote.path)
+        setActiveView("notes")
+      }
     } catch (e) {
       console.error("Failed to create diary:", e)
     }

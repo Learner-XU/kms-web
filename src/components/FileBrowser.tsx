@@ -110,6 +110,10 @@ export default function FileBrowser({ collapsed, onToggle }: FileBrowserProps) {
   }, [loadNotes])
 
   useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [])
+
+  useEffect(() => {
     if (fileTree.length > 0) {
       const autoExpand: Record<string, boolean> = {}
       const walk = (nodes: typeof fileTree) => {

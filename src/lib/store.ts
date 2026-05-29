@@ -59,6 +59,8 @@ interface KMSStore {
   checkAuth: () => Promise<void>;
 }
 
+let loadNoteSeq = 0
+
 export const useKMSStore = create<KMSStore>((set, get) => ({
   notes: [],
   currentNote: null,
@@ -89,7 +91,9 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
 
   loadNote: async (path) => {
     try {
-      const note = await notesAPI.get(path);
+      const reqId = ++loadNoteSeq
+      const note = await notesAPI.get(path)
+      if (reqId !== loadNoteSeq) return // stale
       set({ currentNote: note });
     } catch (e) {
       console.error("[loadNote]", e)

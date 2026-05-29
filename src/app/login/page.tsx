@@ -8,7 +8,7 @@ import { Brain } from "@phosphor-icons/react"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useKMSStore()
+  const login = useKMSStore((s) => s.login)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")

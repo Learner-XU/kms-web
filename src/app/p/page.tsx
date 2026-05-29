@@ -40,9 +40,9 @@ export default function PublishedNotesPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => router.push("/")} className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
+            <a href="/" className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center hover:bg-accent-subtle transition-colors" title="返回首页">
               <Brain weight="fill" className="w-4 h-4 text-accent" />
-            </button>
+            </a>
             <h1 className="text-[22px] font-bold text-text-primary flex items-center gap-2.5">
               <FileText className="w-6 h-6 text-accent" />
               发布笔记

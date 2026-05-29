@@ -18,9 +18,11 @@ export default function RightSidebar() {
   useEffect(() => {
     if (showRightSidebar && currentNote?.id) {
       setBacklinksError(null)
+      let cancelled = false
       searchAPI.backlinks(currentNote.id)
-        .then(({ backlinks }) => setBacklinks(backlinks || []))
-        .catch(() => setBacklinksError("无法加载反向链接"))
+        .then(({ backlinks }) => { if (!cancelled) setBacklinks(backlinks || []) })
+        .catch(() => { if (!cancelled) setBacklinksError("无法加载反向链接") })
+      return () => { cancelled = true }
     } else {
       setBacklinks([])
       setBacklinksError(null)
