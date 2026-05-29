@@ -1,172 +1,115 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import LeftNav from "@/components/LeftNav"
-import FileBrowser from "@/components/FileBrowser"
-import MainEditor from "@/components/MainEditor"
-import RightSidebar from "@/components/RightSidebar"
-import GraphView from "@/components/GraphView"
-import DiaryView from "@/components/DiaryView"
-import TasksView from "@/components/TasksView"
-import HistoryPanel from "@/components/HistoryPanel"
-import StatsView from "@/components/StatsView"
-import { useKMSStore } from "@/lib/store"
-import { useShallow } from "zustand/react/shallow"
-import { motion, AnimatePresence } from "motion/react"
-import { X, List, TreeStructure } from "@phosphor-icons/react"
-import { useIsMobile } from "@/lib/useIsMobile"
+import { Brain, ArrowRight, Tag, CalendarBlank, User } from "@phosphor-icons/react"
+import { publishedAPI, type PublishedNote } from "@/lib/api"
+import { formatDate } from "@/lib/utils"
 
-export default function Home() {
-  const { activeView, error, clearError, showHistory, setShowHistory, currentNote } = useKMSStore(
-    useShallow((s) => ({
-      activeView: s.activeView, error: s.error, clearError: s.clearError,
-      showHistory: s.showHistory, setShowHistory: s.setShowHistory,
-      currentNote: s.currentNote,
-    }))
-  )
+export default function HomePage() {
+  const [notes, setNotes] = useState<PublishedNote[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const { ready, isMobile } = useIsMobile()
-  const [navCollapsed, setNavCollapsed] = useState(false)
-  const [browserCollapsed, setBrowserCollapsed] = useState(false)
-  // Mobile panel: which overlay is open
-  const [mobilePanel, setMobilePanel] = useState<"nav" | "browser" | null>(null)
-
-  // Keyboard shortcuts (desktop only)
   useEffect(() => {
-    if (!ready || isMobile) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "\\") { e.preventDefault(); setNavCollapsed((v) => !v) }
-      if (e.metaKey && e.key === "b") { e.preventDefault(); setBrowserCollapsed((v) => !v) }
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [ready, isMobile])
-
-  // Close mobile panel when switching view
-  useEffect(() => { setMobilePanel(null) }, [activeView])
-
-  // Load notes on mount (needed for mobile where FileBrowser doesn't mount by default)
-  const loadNotes = useKMSStore((s) => s.loadNotes)
-  useEffect(() => { if (ready) loadNotes() }, [ready, loadNotes])
-
-  // Don't render layout until we know the screen size (avoids flash)
-  if (!ready) {
-    return <div className="h-screen w-screen bg-bg-base" />
-  }
+    publishedAPI
+      .list(50, 0)
+      .then((data) => setNotes(data.notes || []))
+      .catch((e) => console.error("Failed to load published notes:", e))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg-base">
-      {/* Error Toast */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-danger/10 border border-danger/20 text-text-secondary px-4 py-3 rounded-lg text-sm backdrop-blur-sm"
-          >
-            <span>{error}</span>
-            <button onClick={clearError} className="text-text-muted hover:text-text-primary transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Mobile overlay: LeftNav */}
-      {isMobile && mobilePanel === "nav" && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/30"
-            onClick={() => setMobilePanel(null)}
-          />
-          <motion.div
-            initial={{ x: -240 }} animate={{ x: 0 }} exit={{ x: -240 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed left-0 top-0 z-50 h-screen shadow-xl"
-          >
-            <LeftNav collapsed={false} onToggle={() => setMobilePanel(null)} />
-          </motion.div>
-        </>
-      )}
-
-      {/* Mobile overlay: FileBrowser */}
-      {isMobile && mobilePanel === "browser" && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/30"
-            onClick={() => setMobilePanel(null)}
-          />
-          <motion.div
-            initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed left-0 top-0 z-50 h-screen shadow-xl"
-          >
-            <FileBrowser collapsed={false} onToggle={() => setMobilePanel(null)} />
-          </motion.div>
-        </>
-      )}
-
-      {/* Desktop layout */}
-      {!isMobile && <LeftNav collapsed={navCollapsed} onToggle={() => setNavCollapsed((v) => !v)} />}
-
-      {/* Mobile global header — always visible so user can navigate */}
-      {isMobile && activeView !== "notes" && (
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <MobileHeader
-            onOpenNav={() => setMobilePanel("nav")}
-            onOpenBrowser={() => setMobilePanel("browser")}
-          />
-          {activeView === "graph" && <GraphView />}
-          {activeView === "diary" && <DiaryView />}
-          {activeView === "tasks" && <TasksView />}
-          {activeView === "ai" && <StatsView onNoteClick={(path) => { useKMSStore.getState().loadNote(path); useKMSStore.getState().setActiveView("notes") }} />}
-        </div>
-      )}
-
-      {activeView === "notes" && (
-        <>
-          {!isMobile && <FileBrowser collapsed={browserCollapsed} onToggle={() => setBrowserCollapsed((v) => !v)} />}
-          {isMobile ? (
-            <div className="flex-1 flex flex-col h-screen overflow-hidden">
-              <MobileHeader
-                onOpenNav={() => setMobilePanel("nav")}
-                onOpenBrowser={() => setMobilePanel("browser")}
-              />
-              <MainEditor />
+    <div className="min-h-screen bg-bg-base">
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/80 backdrop-blur-xl">
+        <div className="max-w-[960px] mx-auto px-6 h-14 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-lg bg-accent-muted flex items-center justify-center">
+              <Brain weight="fill" className="w-4 h-4 text-accent" />
             </div>
-          ) : (
-            <MainEditor />
-          )}
-          <RightSidebar />
-          {showHistory && currentNote && <HistoryPanel notePath={currentNote.path} onClose={() => setShowHistory(false)} />}
-        </>
-      )}
+            <span className="text-[15px] font-semibold text-text-primary group-hover:text-accent transition-colors">
+              Second Brain
+            </span>
+          </a>
+          <a
+            href="/app"
+            className="text-[13px] text-text-tertiary hover:text-accent transition-colors"
+          >
+            进入工作台 →
+          </a>
+        </div>
+      </header>
 
-      {/* Desktop-only views */}
-      {!isMobile && activeView === "graph" && <GraphView />}
-      {!isMobile && activeView === "diary" && <DiaryView />}
-      {!isMobile && activeView === "tasks" && <TasksView />}
-      {!isMobile && activeView === "ai" && <StatsView onNoteClick={(path) => { useKMSStore.getState().loadNote(path); useKMSStore.getState().setActiveView("notes") }} />}
+      {/* Hero */}
+      <section className="max-w-[960px] mx-auto px-6 pt-16 pb-12">
+        <h1 className="text-[32px] font-bold text-text-primary tracking-tight">
+          公开笔记
+        </h1>
+        <p className="mt-3 text-[15px] text-text-tertiary leading-relaxed max-w-[560px]">
+          这里是我整理和发布的公开笔记，涵盖技术、思考和日常记录。
+        </p>
+      </section>
 
+      {/* Notes List */}
+      <main className="max-w-[960px] mx-auto px-6 pb-20">
+        {loading ? (
+          <div className="flex items-center gap-3 py-20 justify-center">
+            <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <span className="text-[13px] text-text-ghost">加载中...</span>
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-[15px] text-text-ghost">还没有发布任何笔记</p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {notes.map((note) => (
+              <a
+                key={note.slug}
+                href={`/p/${note.slug}`}
+                className="group flex items-start gap-5 px-5 py-5 rounded-xl hover:bg-bg-hover transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-[16px] font-medium text-text-primary group-hover:text-accent transition-colors leading-snug">
+                    {note.title || note.slug}
+                  </h2>
+                  {note.summary && (
+                    <p className="mt-1.5 text-[13px] text-text-tertiary leading-relaxed line-clamp-2">
+                      {note.summary}
+                    </p>
+                  )}
+                  <div className="mt-2.5 flex items-center gap-4 text-[12px] text-text-ghost">
+                    <span className="flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {note.nickname || note.username}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <CalendarBlank className="w-3 h-3" />
+                      {formatDate(note.published_at)}
+                    </span>
+                    {note.tags && note.tags.length > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        {note.tags.slice(0, 3).join(", ")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-text-ghost group-hover:text-accent group-hover:translate-x-0.5 transition-all mt-1 shrink-0" />
+              </a>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border-subtle">
+        <div className="max-w-[960px] mx-auto px-6 py-6 flex items-center justify-between text-[12px] text-text-ghost">
+          <span>Powered by Second Brain</span>
+          <a href="/p" className="hover:text-accent transition-colors">
+            查看全部 →
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
-
-function MobileHeader({ onOpenNav, onOpenBrowser }: { onOpenNav: () => void; onOpenBrowser: () => void }) {
-  return (
-    <div className="flex items-center gap-2 px-3 h-11 bg-bg-surface border-b border-border-subtle shrink-0">
-      <button onClick={onOpenNav} className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
-        <List className="w-5 h-5" />
-      </button>
-      <button onClick={onOpenBrowser} className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:bg-bg-hover transition-colors">
-        <TreeStructure className="w-5 h-5" />
-      </button>
-      <div className="flex-1" />
-    </div>
-  )
-}
-

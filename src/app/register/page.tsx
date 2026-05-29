@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await register(username, email, password, nickname || undefined)
-      router.push("/")
+      router.push("/app")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "注册失败")
     } finally {

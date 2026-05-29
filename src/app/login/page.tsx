@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      router.push("/")
+      router.push("/app")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "登录失败")
     } finally {
