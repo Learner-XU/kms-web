@@ -68,13 +68,28 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
         if (cancelled) return
         const { username: _, updated_at: __, ...profileFields } = data
         const merged = { ...defaultProfile(), ...profileFields }
-        if (!merged.name && user?.username === username) merged.name = user.nickname || user.username
         setProfile(merged)
         setDraft(merged)
-      } catch (err: any) {
+      } catch {
         if (cancelled) return
-        // 404 or other error → use default profile
+        // 404 → try migrate from localStorage (legacy)
         const fallback = defaultProfile()
+        if (typeof window !== "undefined") {
+          try {
+            const saved = localStorage.getItem("kms_profile")
+            if (saved) {
+              const local = { ...fallback, ...JSON.parse(saved) }
+              setProfile(local)
+              setDraft(local)
+              // Auto-save to backend if this is the owner
+              if (user?.username === username) {
+                profilesAPI.update(username, local).catch(() => {})
+              }
+              setLoading(false)
+              return
+            }
+          } catch {}
+        }
         if (user?.username === username) fallback.name = user.nickname || user.username
         setProfile(fallback)
         setDraft(fallback)
