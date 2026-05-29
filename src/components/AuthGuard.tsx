@@ -4,7 +4,10 @@ import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useKMSStore } from "@/lib/store"
 
-const PUBLIC_PATHS = ["/login", "/register"]
+// Paths accessible without login (but won't redirect logged-in users away)
+const PUBLIC_VIEW_PATHS = ["/profile"]
+// Paths only for guests — logged-in users get redirected to /
+const GUEST_ONLY_PATHS = ["/login", "/register"]
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -19,10 +22,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (authLoading) return
-    const isPublic = PUBLIC_PATHS.some(p => pathname.startsWith(p))
-    if (!user && !isPublic) {
+    const isPublicView = PUBLIC_VIEW_PATHS.some(p => pathname.startsWith(p))
+    const isGuestOnly = GUEST_ONLY_PATHS.some(p => pathname.startsWith(p))
+    if (!user && !isPublicView && !isGuestOnly) {
       router.push("/login")
-    } else if (user && isPublic) {
+    } else if (user && isGuestOnly) {
       router.push("/")
     }
   }, [user, authLoading, pathname, router])
