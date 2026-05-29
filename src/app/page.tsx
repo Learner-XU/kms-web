@@ -83,7 +83,6 @@ export default function HomePage() {
               { label: "首页", href: "/" },
               { label: "笔记", href: "#notes" },
               { label: "标签", href: "#tags" },
-              { label: "关于我", href: "/app" },
             ].map((item) => (
               <a
                 key={item.label}
@@ -144,12 +143,6 @@ export default function HomePage() {
                 浏览所有笔记
                 <ArrowRight className="w-4 h-4" />
               </a>
-              <a
-                href="/app"
-                className="inline-flex items-center gap-2 px-5 h-10 rounded-lg border border-border-emphasis text-[13px] text-text-secondary hover:text-text-primary hover:border-text-ghost transition-colors"
-              >
-                关于我
-              </a>
             </div>
             {/* Stats */}
             <div className="mt-10 flex items-center gap-8">
@@ -195,7 +188,7 @@ export default function HomePage() {
       <section id="notes" className="max-w-[1120px] mx-auto px-6 pb-16">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-[20px] font-bold text-text-primary">最新笔记</h2>
-          <a href="#all" className="text-[13px] text-accent hover:text-accent-hover transition-colors">
+          <a href="/p" className="text-[13px] text-accent hover:text-accent-hover transition-colors">
             查看全部 →
           </a>
         </div>
