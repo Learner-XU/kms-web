@@ -144,8 +144,13 @@ export async function fetchAPI<T>(endpoint: string, options?: RequestInit): Prom
         throw new Error(retryErr.error || `API error: ${retryRes.status}`);
       }
       clearToken();
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+      // Don't redirect to login from public pages
+      if (typeof window !== "undefined") {
+        const p = window.location.pathname;
+        const isPublic = p === "/" || p.startsWith("/p") || p.startsWith("/profile/");
+        if (!p.startsWith("/login") && !isPublic) {
+          window.location.href = "/login";
+        }
       }
     }
     const err = await res.json().catch(() => ({ error: res.statusText }));
