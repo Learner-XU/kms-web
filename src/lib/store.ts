@@ -199,6 +199,7 @@ export const useKMSStore = create<KMSStore>((set, get) => ({
   },
   logout: () => {
     clearToken();
+    loadNoteSeq = 0
     set({ user: null, notes: [], currentNote: null });
   },
   checkAuth: async () => {

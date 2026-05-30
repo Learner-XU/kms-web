@@ -45,6 +45,17 @@ const projectIcons: Record<string, typeof Lightning> = {
   code: Code,
 }
 
+/* ── Helpers ── */
+
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return ["http:", "https:"].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
 /* ── Main Page ── */
 
 export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -162,7 +173,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
         <div className="flex flex-col items-center px-5 py-4">
           <div className="relative mb-3">
             <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center ring-2 ring-accent/20">
-              {p.avatar ? (
+              {p.avatar && isSafeUrl(p.avatar) ? (
                 <img src={p.avatar} alt={p.name} className="w-20 h-20 rounded-full object-cover" />
               ) : (
                 <User weight="bold" className="w-8 h-8 text-accent/60" />

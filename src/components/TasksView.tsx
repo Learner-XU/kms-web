@@ -9,6 +9,11 @@ import {
 import { issuesAPI, type Issue, type IssueLabel } from "@/lib/api"
 import { formatRelativeTime } from "@/lib/utils"
 
+/** Validate hex color from API — prevent CSS injection */
+function safeHex(color: string): string {
+  return /^[0-9a-fA-F]{6}$/.test(color) ? color : "888888"
+}
+
 export default function TasksView() {
   const [issues, setIssues] = useState<Issue[]>([])
   const [labels, setLabels] = useState<IssueLabel[]>([])
@@ -93,7 +98,7 @@ export default function TasksView() {
                   <button onClick={() => { setLabelFilter(""); setShowLabels(false) }} className="w-full px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover text-left">全部标签</button>
                   {labels.map(l => (
                     <button key={l.id} onClick={() => { setLabelFilter(l.name); setShowLabels(false) }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover text-left">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: `#${l.color}` }} />
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: `#${safeHex(l.color)}` }} />
                       {l.name}
                     </button>
                   ))}
@@ -197,7 +202,7 @@ function IssueCard({ issue, onClick, onToggle }: { issue: Issue; onClick: () => 
         {issue.labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-1.5">
             {issue.labels.map(l => (
-              <span key={l.id} className="px-2 py-0.5 text-[10px] rounded-full" style={{ background: `#${l.color}20`, color: `#${l.color}`, border: `1px solid #${l.color}40` }}>
+              <span key={l.id} className="px-2 py-0.5 text-[10px] rounded-full" style={{ background: `#${safeHex(l.color)}20`, color: `#${safeHex(l.color)}`, border: `1px solid #${safeHex(l.color)}40` }}>
                 {l.name}
               </span>
             ))}
@@ -270,7 +275,7 @@ function IssueDetailPanel({ issue, labels: allLabels, onClose, onToggle, onRefre
         {issue.labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {issue.labels.map(l => (
-              <span key={l.id} className="px-2.5 py-0.5 text-[11px] rounded-full" style={{ background: `#${l.color}20`, color: `#${l.color}`, border: `1px solid #${l.color}40` }}>
+              <span key={l.id} className="px-2.5 py-0.5 text-[11px] rounded-full" style={{ background: `#${safeHex(l.color)}20`, color: `#${safeHex(l.color)}`, border: `1px solid #${safeHex(l.color)}40` }}>
                 {l.name}
               </span>
             ))}
@@ -388,12 +393,12 @@ function CreateIssueDialog({ labels: allLabels, onClose, onCreate }: {
                       onClick={() => setSelectedLabels(selected ? selectedLabels.filter(s => s !== l.name) : [...selectedLabels, l.name])}
                       className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] rounded-full transition-colors"
                       style={{
-                        background: selected ? `#${l.color}30` : "transparent",
-                        color: selected ? `#${l.color}` : undefined,
-                        border: `1px solid #${l.color}60`,
+                        background: selected ? `#${safeHex(l.color)}30` : "transparent",
+                        color: selected ? `#${safeHex(l.color)}` : undefined,
+                        border: `1px solid #${safeHex(l.color)}60`,
                       }}
                     >
-                      <span className="w-2 h-2 rounded-full" style={{ background: `#${l.color}` }} />
+                      <span className="w-2 h-2 rounded-full" style={{ background: `#${safeHex(l.color)}` }} />
                       {l.name}
                     </button>
                   )

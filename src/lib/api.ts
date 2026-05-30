@@ -98,6 +98,20 @@ export interface GraphData {
 async function tryRefreshToken(): Promise<boolean> {
   const refreshToken = localStorage.getItem("refresh_token");
   if (!refreshToken) return false;
+
+  // Coalesce concurrent refresh attempts — only one refresh at a time
+  if (refreshMutex) return refreshMutex;
+  refreshMutex = doRefresh(refreshToken);
+  try {
+    return await refreshMutex;
+  } finally {
+    refreshMutex = null;
+  }
+}
+
+let refreshMutex: Promise<boolean> | null = null;
+
+async function doRefresh(refreshToken: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
@@ -290,10 +304,14 @@ export const authAPI = {
   me: () => fetchAPI<AuthUser>("/api/auth/me"),
 
   refresh: (refreshToken: string) =>
-    fetchAPI<AuthResponse>("/api/auth/refresh", {
+    fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),
-    }),
+    }).then(res => {
+      if (!res.ok) throw new Error(`Refresh failed: ${res.status}`);
+      return res.json();
+    }) as Promise<AuthResponse>,
 };
 
 export interface ProfileData {
@@ -356,5 +374,10 @@ export const publishedAPI = {
       method: "DELETE",
     }),
   check: (notePath: string) =>
-    fetchAPI<{ slug: string } | null>(`/api/publish/${sanitizePath(notePath)}`).catch(() => null),
+    fetchAPI<{ slug: string } | null>(`/api/publish/${sanitizePath(notePath)}`).catch((e) => {
+      // Only swallow 404-like errors, not network failures
+      if (e.message?.includes("404") || e.message?.includes("Not Found")) return null
+      console.error("[publishedAPI.check]", e)
+      return null
+    }),
 };

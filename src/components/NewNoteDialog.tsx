@@ -17,7 +17,10 @@ export default function NewNoteDialog({ isOpen, onClose, onSubmit }: Props) {
 
   const handleSubmit = () => {
     if (!title.trim()) return
-    const fullPath = path.endsWith("/") ? path + title.replace(/\s+/g, "-") : path
+    // Sanitize path — block traversal and special characters
+    if (path.includes("..")) return
+    const cleanPath = path.replace(/[^a-zA-Z0-9_/\-]/g, "")
+    const fullPath = cleanPath.endsWith("/") ? cleanPath + title.replace(/\s+/g, "-") : cleanPath
     onSubmit(title, fullPath, type)
     setTitle("")
     setPath("notes/")
